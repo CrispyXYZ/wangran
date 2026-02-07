@@ -35,12 +35,12 @@ public class AuthServiceImpl implements AuthService {
      * 用户/商户注册，不允许同一手机号重复注册
      *
      * @param registerRequestDTO 注册请求参数，包含手机号、密码和用户类型
-     * @return 响应对象，包含注册成功后的账户信息
+     * @return 注册成功后的账户信息
      * @throws ResourceConflictException 当手机号已被注册时抛出
      */
     @Transactional
     @Override
-    public ServiceResponseDTO<? extends AccountDTO> register(RegisterRequestDTO registerRequestDTO) {
+    public AccountDTO register(RegisterRequestDTO registerRequestDTO) {
         String phoneNumber = registerRequestDTO.getPhoneNumber();
 
         if (existUser(phoneNumber) || existMerchant(phoneNumber)) {
@@ -55,18 +55,14 @@ public class AuthServiceImpl implements AuthService {
             merchant.setPasswordSha256(passwordSha256);
             merchant.setApprovalStatus(0);
             merchantMapper.insert(merchant);
-            ServiceResponseDTO<MerchantDTO> response = new ServiceResponseDTO<>();
-            response.setData(modelMapper.map(merchant, MerchantDTO.class));
-            return response;
+            return modelMapper.map(merchant, MerchantDTO.class);
         } else {
             User user = new User();
             user.setPhoneNumber(registerRequestDTO.getPhoneNumber());
             user.setPasswordSha256(passwordSha256);
             user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
             userMapper.insert(user);
-            ServiceResponseDTO<UserDTO> response = new ServiceResponseDTO<>();
-            response.setData(modelMapper.map(user, UserDTO.class));
-            return response;
+            return modelMapper.map(user, UserDTO.class);
         }
     }
 
@@ -75,20 +71,20 @@ public class AuthServiceImpl implements AuthService {
      * 支持管理员登录、商户id、手机号登录。其中手机号优先匹配普通用户
      *
      * @param loginRequestDTO 登录请求参数，包含标识符(手机号或商户ID)和密码
-     * @return 响应对象，包含登录成功后的账户信息
+     * @return 登录成功后的账户信息
      * @throws AuthException 当密码验证失败时抛出
      * @throws ResourceNotFoundException 当用户不存在时抛出
      * @throws MerchantApprovalException 当商户处于审核中或审核不通过时抛出
      */
     @Transactional(readOnly = true)
     @Override
-    public ServiceResponseDTO<? extends AccountDTO> login(LoginRequestDTO loginRequestDTO) {
+    public AccountDTO login(LoginRequestDTO loginRequestDTO) {
         String identifier = loginRequestDTO.getIdentifier();
         String password = loginRequestDTO.getPassword();
 
         if ("AdminMaster".equals(identifier) && "AdminMaster".equals(password)) {
             log.info("管理员登录");
-            return new ServiceResponseDTO<>();
+            return null;
         }
 
         if (identifier.startsWith("mid_")) {
@@ -98,9 +94,7 @@ public class AuthServiceImpl implements AuthService {
             if (merchant != null) {
                 boolean success = ValidateUtil.verifySha256(password, merchant.getPasswordSha256());
                 if (success) {
-                    ServiceResponseDTO<MerchantDTO> response = new ServiceResponseDTO<>();
-                    response.setData(modelMapper.map(merchant, MerchantDTO.class));
-                    return response;
+                    return modelMapper.map(merchant, MerchantDTO.class);
                 } else {
                     throw new AuthException("密码错误");
                 }
@@ -116,9 +110,7 @@ public class AuthServiceImpl implements AuthService {
         if (user != null) {
             boolean success = ValidateUtil.verifySha256(password, user.getPasswordSha256());
             if (success) {
-                ServiceResponseDTO<UserDTO> response = new ServiceResponseDTO<>();
-                response.setData(modelMapper.map(user, UserDTO.class));
-                return response;
+                return modelMapper.map(user, UserDTO.class);
             } else {
                 throw new AuthException("密码错误");
             }
@@ -138,9 +130,7 @@ public class AuthServiceImpl implements AuthService {
             }
             boolean success = ValidateUtil.verifySha256(password, merchant.getPasswordSha256());
             if (success) {
-                ServiceResponseDTO<MerchantDTO> response = new ServiceResponseDTO<>();
-                response.setData(modelMapper.map(merchant, MerchantDTO.class));
-                return response;
+                return modelMapper.map(merchant, MerchantDTO.class);
             } else {
                 throw new AuthException("密码错误");
             }
@@ -154,12 +144,12 @@ public class AuthServiceImpl implements AuthService {
      * 审核通过则分配商户id和昵称，审核状态变更为1，并把拒绝原因设为空字符串。
      * 审核不通过则将审核状态变更为2，记录拒绝原因
      * @param reviewRequestDTO 审核请求参数，包含商户手机号和审核结果
-     * @return 响应对象，包含审核结果信息
+     * @return 审核结果信息
      * @throws ResourceNotFoundException 当商户不存在时抛出
      * @throws SystemException 当数据库数据异常时抛出
      */
     @Override
-    public ServiceResponseDTO<ReviewResultDTO> review(ReviewRequestDTO reviewRequestDTO) {
+    public ReviewResultDTO review(ReviewRequestDTO reviewRequestDTO) {
         String merchantPhoneNumber = reviewRequestDTO.getMerchantPhoneNumber();
         LambdaQueryWrapper<Merchant> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Merchant::getPhoneNumber, merchantPhoneNumber);
@@ -196,10 +186,7 @@ public class AuthServiceImpl implements AuthService {
 
             result.setApproved(false);
         }
-
-        ServiceResponseDTO<ReviewResultDTO> response = new ServiceResponseDTO<>();
-        response.setData(result);
-        return response;
+        return result;
     }
 
     /**

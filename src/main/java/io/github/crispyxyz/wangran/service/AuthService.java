@@ -12,7 +12,7 @@ public interface AuthService {
      * @param registerRequestDTO 注册请求参数
      * @return 注册成功后的账户信息
      */
-    ServiceResponseDTO<? extends AccountDTO> register(RegisterRequestDTO registerRequestDTO);
+    AccountDTO register(RegisterRequestDTO registerRequestDTO);
 
     /**
      * 账户登录验证
@@ -20,7 +20,7 @@ public interface AuthService {
      * @param loginRequestDTO 登录请求参数
      * @return 登录成功后的账户信息
      */
-    ServiceResponseDTO<? extends AccountDTO> login(LoginRequestDTO loginRequestDTO);
+    AccountDTO login(LoginRequestDTO loginRequestDTO);
 
     /**
      * 审核商户注册申请
@@ -28,5 +28,5 @@ public interface AuthService {
      * @param reviewRequestDTO 审核请求参数
      * @return 审核结果信息
      */
-    ServiceResponseDTO<ReviewResultDTO> review(ReviewRequestDTO reviewRequestDTO);
+    ReviewResultDTO review(ReviewRequestDTO reviewRequestDTO);
 }

@@ -1,9 +1,8 @@
 package io.github.crispyxyz.wangran.controller;
 
-import io.github.crispyxyz.wangran.dto.LoginRequestDTO;
-import io.github.crispyxyz.wangran.dto.RegisterRequestDTO;
-import io.github.crispyxyz.wangran.dto.ReviewRequestDTO;
+import io.github.crispyxyz.wangran.dto.*;
 import io.github.crispyxyz.wangran.service.AuthService;
+import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,20 +23,20 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
-        var data = authService.register(registerRequestDTO).getData();
-        return ResponseEntity.ok(data);
+    public ResponseEntity<ResponseDTO<?>> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
+        AccountDTO data = authService.register(registerRequestDTO);
+        return ResponseEntity.ok(ResponseUtil.success(data));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
-        var data = authService.login(loginRequestDTO).getData();
-        return ResponseEntity.ok(data);
+    public ResponseEntity<ResponseDTO<?>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+        AccountDTO data = authService.login(loginRequestDTO);
+        return ResponseEntity.ok(ResponseUtil.success(data));
     }
 
     @PostMapping("/review")
-    public ResponseEntity<?> review(@Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
-        var data = authService.review(reviewRequestDTO).getData();
-        return ResponseEntity.ok(data);
+    public ResponseEntity<ResponseDTO<?>> review(@Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
+        ReviewResultDTO data = authService.review(reviewRequestDTO);
+        return ResponseEntity.ok(ResponseUtil.success(data));
     }
 }
