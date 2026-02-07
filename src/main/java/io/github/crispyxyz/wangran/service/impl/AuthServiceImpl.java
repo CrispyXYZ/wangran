@@ -122,18 +122,19 @@ public class AuthServiceImpl implements AuthService {
         Merchant merchant = merchantMapper.selectOne(wrapperMerchant);
 
         if (merchant != null) {
+            boolean success = ValidateUtil.verifySha256(password, merchant.getPasswordSha256());
+            if (!success) {
+                throw new AuthException("密码错误");
+            }
+
             if (merchant.getApprovalStatus() == 0) {
                 throw new MerchantApprovalException("审核中，请等待");
             }
             if (merchant.getApprovalStatus() == 2) {
                 throw new MerchantApprovalException("审核不通过，原因："+merchant.getRejectReason());
             }
-            boolean success = ValidateUtil.verifySha256(password, merchant.getPasswordSha256());
-            if (success) {
-                return modelMapper.map(merchant, MerchantDTO.class);
-            } else {
-                throw new AuthException("密码错误");
-            }
+
+            return modelMapper.map(merchant, MerchantDTO.class);
         }
 
         throw new ResourceNotFoundException("不存在该用户");
@@ -167,18 +168,21 @@ public class AuthServiceImpl implements AuthService {
         result.setPhoneNumber(merchantPhoneNumber);
 
         if (reviewRequestDTO.isApproved()) {
-            String id = "mid_" + System.currentTimeMillis();
-            String username = GenerationUtil.generateUniqueUsername("merchant_");
+            if (merchant.getMerchantId() == null) {
+                String id = "mid_" + System.currentTimeMillis();
+                merchant.setMerchantId(id);
+            }
+
+            if (merchant.getUsername() == null) {
+                String username = GenerationUtil.generateUniqueUsername("merchant_");
+                merchant.setUsername(username);
+            }
 
             merchant.setApprovalStatus(1);
-            merchant.setMerchantId(id);
-            merchant.setUsername(username);
             merchant.setRejectReason("");
             merchantMapper.updateById(merchant);
 
             result.setApproved(true);
-            result.setMerchantId(merchant.getMerchantId());
-            result.setUsername(username);
         } else {
             merchant.setApprovalStatus(2);
             merchant.setRejectReason(reviewRequestDTO.getRejectReason());
@@ -186,6 +190,8 @@ public class AuthServiceImpl implements AuthService {
 
             result.setApproved(false);
         }
+        result.setMerchantId(merchant.getMerchantId());
+        result.setUsername(merchant.getUsername());
         return result;
     }
 
