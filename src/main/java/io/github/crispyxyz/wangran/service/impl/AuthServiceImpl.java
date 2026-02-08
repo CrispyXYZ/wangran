@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
      * @param registerRequestDTO 注册请求参数，包含手机号、密码和用户类型
      * @return 注册成功后的账户信息
      * @throws ResourceConflictException 当手机号已被注册时抛出
-     * @throws SystemException 当SHA-256算法不可用时
+     * @throws SystemException           当SHA-256算法不可用时
      */
     @Transactional
     @Override
@@ -82,10 +82,10 @@ public class AuthServiceImpl implements AuthService {
      *
      * @param loginRequestDTO 登录请求参数，包含标识符(手机号或商户ID)和密码
      * @return 登录成功后的 JWT token 和账户信息
-     * @throws AuthException 当密码验证失败时抛出
+     * @throws AuthException             当密码验证失败时抛出
      * @throws ResourceNotFoundException 当用户不存在时抛出
      * @throws MerchantApprovalException 当商户处于审核中或审核不通过时抛出
-     * @throws SystemException 当SHA-256算法不可用时
+     * @throws SystemException           当SHA-256算法不可用时
      */
     @Transactional(readOnly = true)
     @Override
@@ -181,7 +181,7 @@ public class AuthServiceImpl implements AuthService {
      * @param reviewRequestDTO 审核请求参数，包含商户手机号和审核结果
      * @return 审核结果信息
      * @throws ResourceNotFoundException 当商户不存在时抛出
-     * @throws SystemException 当SHA-256算法不可用时
+     * @throws SystemException           当SHA-256算法不可用时
      */
     @Override
     public ReviewResultDTO review(ReviewRequestDTO reviewRequestDTO) {
@@ -241,7 +241,6 @@ public class AuthServiceImpl implements AuthService {
         log.debug("审核处理成功，merchantPhoneNumber={}", merchantPhoneNumber);
         return result;
     }
-
 
 
     /**

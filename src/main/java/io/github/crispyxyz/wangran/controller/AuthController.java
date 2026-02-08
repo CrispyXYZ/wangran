@@ -29,6 +29,7 @@ public class AuthController {
 
     /**
      * 用户注册接口
+     *
      * @param registerRequestDTO 注册请求参数
      * @return 注册成功的账户信息
      */
@@ -42,6 +43,7 @@ public class AuthController {
 
     /**
      * 用户登录接口
+     *
      * @param loginRequestDTO 登录请求参数
      * @return 登录成功的账户信息
      */
@@ -55,6 +57,7 @@ public class AuthController {
 
     /**
      * 审核接口
+     *
      * @param reviewRequestDTO 审核请求参数
      * @return 审核结果
      */

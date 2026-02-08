@@ -52,7 +52,9 @@ public class JwtInterceptor implements HandlerInterceptor {
         try {
             // 验证并解析
             DecodedJWT decodedJWT = SecurityUtil.verifyJwtToken(token);
-            log.debug("JWT已解析, subject={}, role={}", decodedJWT.getSubject(), decodedJWT.getClaim("role").asString());
+            String role = decodedJWT.getClaim("role")
+                                    .asString();
+            log.debug("JWT已解析, subject={}, role={}", decodedJWT.getSubject(), role);
 
             // 非审核接口直接放行（虽然目前不存在）
             if (!"/auth/review".equals(requestURI)) {
@@ -60,7 +62,6 @@ public class JwtInterceptor implements HandlerInterceptor {
             }
 
             // 处理审核接口，需要 role=admin
-            String role = decodedJWT.getClaim("role").asString();
             if ("admin".equals(role)) {
                 return true;
             }
@@ -84,6 +85,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(ResponseUtil.error(message)));
+        response.getWriter()
+                .write(objectMapper.writeValueAsString(ResponseUtil.error(message)));
     }
 }

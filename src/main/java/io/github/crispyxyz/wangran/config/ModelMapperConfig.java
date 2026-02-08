@@ -28,8 +28,8 @@ public class ModelMapperConfig {
 
         // 配置 Merchant 到 MerchantDTO 的映射规则
         modelMapper.typeMap(Merchant.class, MerchantDTO.class)
-        .addMappings(mapper -> mapper.using(approvalStatusConverter)
-        .map(Merchant::getApprovalStatus, MerchantDTO::setApprovalStatus));
+                   .addMappings(mapper -> mapper.using(approvalStatusConverter)
+                                                .map(Merchant::getApprovalStatus, MerchantDTO::setApprovalStatus));
 
         return modelMapper;
     }

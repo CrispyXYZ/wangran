@@ -71,8 +71,9 @@ public class SecurityUtil {
 
     /**
      * 创建 JWT token，包含昵称、角色、时间信息
+     *
      * @param username 昵称
-     * @param role 角色
+     * @param role     角色
      * @return JWT token 字符串
      */
     public static String createJwtToken(String username, String role) {
@@ -93,6 +94,8 @@ public class SecurityUtil {
      * @throws JWTVerificationException JWT token 无效时抛出
      */
     public static DecodedJWT verifyJwtToken(String token) {
-        return JWT.require(Algorithm.HMAC256(JWT_KEY)).build().verify(token);
+        return JWT.require(Algorithm.HMAC256(JWT_KEY))
+                  .build()
+                  .verify(token);
     }
 }
