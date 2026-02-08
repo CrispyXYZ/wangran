@@ -7,7 +7,7 @@ public class ReviewResultDTO {
     /**
      * 审核是否通过
      */
-    private Boolean approved;
+    private boolean approved;
 
     /**
      * 审核通过时生成的商户ID

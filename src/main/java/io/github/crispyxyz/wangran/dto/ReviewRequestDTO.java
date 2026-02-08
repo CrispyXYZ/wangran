@@ -1,6 +1,7 @@
 package io.github.crispyxyz.wangran.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -20,7 +21,8 @@ public class ReviewRequestDTO {
     /**
      * 审核是否通过。此字段为 true 时，应当忽略 rejectReason 的值；反之应当提供非空的 rejectReason
      */
-    private boolean approved;
+    @NotNull
+    private Boolean approved;
 
     /**
      * 驳回理由。当 approved 为 true 时，此字段的值应当被忽略
