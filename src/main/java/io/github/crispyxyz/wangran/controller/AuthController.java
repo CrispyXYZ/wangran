@@ -48,7 +48,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ResponseDTO<?>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         log.info("接收登录请求: {}", loginRequestDTO);
-        AccountDTO data = authService.login(loginRequestDTO);
+        LoginDTO data = authService.login(loginRequestDTO);
         log.info("登录请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }

@@ -18,9 +18,9 @@ public interface AuthService {
      * 账户登录验证
      *
      * @param loginRequestDTO 登录请求参数
-     * @return 登录成功后的账户信息
+     * @return 登录成功后的 JWT token 和账户信息
      */
-    AccountDTO login(LoginRequestDTO loginRequestDTO);
+    LoginDTO login(LoginRequestDTO loginRequestDTO);
 
     /**
      * 审核商户注册申请

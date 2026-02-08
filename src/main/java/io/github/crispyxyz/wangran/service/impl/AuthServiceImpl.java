@@ -9,7 +9,7 @@ import io.github.crispyxyz.wangran.mapper.MerchantMapper;
 import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
-import io.github.crispyxyz.wangran.util.ValidateUtil;
+import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 对输入的密码进行 SHA-256 编码
-        byte[] passwordSha256 = ValidateUtil.computeSha256(registerRequestDTO.getPassword());
+        byte[] passwordSha256 = SecurityUtil.computeSha256(registerRequestDTO.getPassword());
 
         if (registerRequestDTO.getMerchant()) {
             // 商户注册逻辑
@@ -81,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
      * 支持管理员登录、商户id、手机号登录。其中手机号优先匹配普通用户
      *
      * @param loginRequestDTO 登录请求参数，包含标识符(手机号或商户ID)和密码
-     * @return 登录成功后的账户信息
+     * @return 登录成功后的 JWT token 和账户信息
      * @throws AuthException 当密码验证失败时抛出
      * @throws ResourceNotFoundException 当用户不存在时抛出
      * @throws MerchantApprovalException 当商户处于审核中或审核不通过时抛出
@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
      */
     @Transactional(readOnly = true)
     @Override
-    public AccountDTO login(LoginRequestDTO loginRequestDTO) {
+    public LoginDTO login(LoginRequestDTO loginRequestDTO) {
         String identifier = loginRequestDTO.getIdentifier();
         String password = loginRequestDTO.getPassword();
         log.debug("开始处理登录，identifier={}", identifier);
@@ -97,8 +97,8 @@ public class AuthServiceImpl implements AuthService {
         // 判断管理员登录
         if ("AdminMaster".equals(identifier) && "AdminMaster".equals(password)) {
             log.debug("登录为管理员成功，identifier={}", identifier);
-            // 成功，暂时返回 null
-            return null;
+            // 成功
+            return new LoginDTO(null, SecurityUtil.createJwtToken("AdminMaster", "admin"));
         }
 
         // 判断商户 id 登录，注意：此处不再判断商户的审核状态，因为具有商户id的商户一定通过了审核
@@ -114,13 +114,14 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // 验证密码
-            boolean success = ValidateUtil.verifySha256(password, merchant.getPasswordSha256());
+            boolean success = SecurityUtil.verifySha256(password, merchant.getPasswordSha256());
             if (!success) {
                 throw new AuthException("密码错误");
             }
             // 成功
             log.debug("商户id登录成功，identifier={}", identifier);
-            return modelMapper.map(merchant, MerchantDTO.class);
+
+            return new LoginDTO(modelMapper.map(merchant, MerchantDTO.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
         }
 
         // 商户 id 匹配失败，尝试普通用户手机号登录
@@ -132,13 +133,13 @@ public class AuthServiceImpl implements AuthService {
         if (user != null) {
             log.debug("普通用户手机号登录，identifier={}", identifier);
             // 匹配密码
-            boolean success = ValidateUtil.verifySha256(password, user.getPasswordSha256());
+            boolean success = SecurityUtil.verifySha256(password, user.getPasswordSha256());
             if (!success) {
                 throw new AuthException("密码错误");
             }
             // 成功
             log.debug("普通用户手机号登录成功，identifier={}", identifier);
-            return modelMapper.map(user, UserDTO.class);
+            return new LoginDTO(modelMapper.map(user, UserDTO.class), SecurityUtil.createJwtToken(user.getUsername(), "user"));
         }
 
         // 普通用户手机号匹配失败，尝试商户手机号登录
@@ -150,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
         if (merchant != null) {
             log.debug("商户手机号登录，identifier={}", identifier);
             // 先验证密码
-            boolean success = ValidateUtil.verifySha256(password, merchant.getPasswordSha256());
+            boolean success = SecurityUtil.verifySha256(password, merchant.getPasswordSha256());
             if (!success) {
                 throw new AuthException("密码错误");
             }
@@ -165,7 +166,7 @@ public class AuthServiceImpl implements AuthService {
 
             // 成功
             log.debug("商户手机号登录成功，identifier={}", identifier);
-            return modelMapper.map(merchant, MerchantDTO.class);
+            return new LoginDTO(modelMapper.map(merchant, MerchantDTO.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
         }
 
         // 所有登录方式均失败，用户不存在
@@ -236,7 +237,7 @@ public class AuthServiceImpl implements AuthService {
         result.setApproved(reviewRequestDTO.getApproved());
         result.setMerchantId(merchant.getMerchantId());
         result.setUsername(merchant.getUsername());
-        
+
         log.debug("审核处理成功，merchantPhoneNumber={}", merchantPhoneNumber);
         return result;
     }
