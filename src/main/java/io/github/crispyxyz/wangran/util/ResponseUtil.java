@@ -1,7 +1,7 @@
 package io.github.crispyxyz.wangran.util;
 
-import io.github.crispyxyz.wangran.dto.ResponseDTO;
 import io.github.crispyxyz.wangran.exception.BusinessException;
+import io.github.crispyxyz.wangran.response.BaseResponse;
 
 public class ResponseUtil {
     /**
@@ -10,8 +10,8 @@ public class ResponseUtil {
      * @param data 响应数据
      * @return 包含成功标识和数据的响应对象
      */
-    public static <T> ResponseDTO<T> success(T data) {
-        return new ResponseDTO<>(true, "success", data);
+    public static <T> BaseResponse<T> success(T data) {
+        return new BaseResponse<>(true, "success", data);
     }
 
     /**
@@ -20,7 +20,7 @@ public class ResponseUtil {
      * @param exception 业务异常
      * @return 包含异常信息的响应对象
      */
-    public static ResponseDTO<?> error(BusinessException exception) {
+    public static BaseResponse<?> error(BusinessException exception) {
         return error(exception.getMessage());
     }
 
@@ -30,7 +30,7 @@ public class ResponseUtil {
      * @param message 错误消息
      * @return 包含错误消息的响应对象
      */
-    public static ResponseDTO<?> error(String message) {
-        return new ResponseDTO<>(false, message, null);
+    public static BaseResponse<?> error(String message) {
+        return new BaseResponse<>(false, message, null);
     }
 }

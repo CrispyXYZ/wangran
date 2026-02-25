@@ -1,7 +1,7 @@
 package io.github.crispyxyz.wangran.config;
 
-import io.github.crispyxyz.wangran.dto.MerchantDTO;
-import io.github.crispyxyz.wangran.entity.Merchant;
+import io.github.crispyxyz.wangran.model.Merchant;
+import io.github.crispyxyz.wangran.response.MerchantResponse;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -26,10 +26,10 @@ public class ModelMapperConfig {
             };
         };
 
-        // 配置 Merchant 到 MerchantDTO 的映射规则
-        modelMapper.typeMap(Merchant.class, MerchantDTO.class)
+        // 配置 Merchant 到 MerchantResponse 的映射规则
+        modelMapper.typeMap(Merchant.class, MerchantResponse.class)
                    .addMappings(mapper -> mapper.using(approvalStatusConverter)
-                                                .map(Merchant::getApprovalStatus, MerchantDTO::setApprovalStatus));
+                                                .map(Merchant::getApprovalStatus, MerchantResponse::setApprovalStatus));
 
         return modelMapper;
     }

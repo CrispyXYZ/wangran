@@ -1,4 +1,4 @@
-package io.github.crispyxyz.wangran.dto;
+package io.github.crispyxyz.wangran.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,7 +8,7 @@ import lombok.Data;
  * 接收登录请求数据
  */
 @Data
-public class LoginRequestDTO {
+public class LoginRequest {
     /**
      * 标识符，即手机号或商户id，也可以是管理员账号，不超过50字符，非空
      */

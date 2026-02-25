@@ -1,6 +1,7 @@
 # wangran
 
 项目依赖信息：
+
 - Java 17 - 目标编译运行环境
 - Spring Boot 3.5.10 - 项目框架
 - MyBatis - 持久层框架
@@ -11,6 +12,7 @@
 - Java JWT 4.5.0 - JWT 实现
 
 环境：
+
 ```
 openjdk 21.0.4 2024-07-16 LTS
 OpenJDK Runtime Environment Zulu21.36+17-CA (build 21.0.4+7-LTS)
@@ -20,11 +22,12 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 ```
 
 数据库相关：
+
 - 执行 `init_db.sql` 即可删除并重建数据库，**执行前先打开检查一下，删库警告！！！**
-- 执行 `reset_db.sql` 即可重置数据表
 - 数据库连接url：`jdbc:mysql://localhost:3306/wangran_db`
 
 项目结构相关：
+
 - 结构比较简单
 - 主要逻辑集中在 `service`、`handler`、`interceptor` 以及 `util`
 - `controller` 只负责转发
@@ -100,7 +103,6 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 | `password`    | `string`  | 密码    | 是    | 长度在6-50之间              |
 | `merchant`    | `boolean` | 是否为商户 | 是    | `true`为商户，`false`为普通用户 |
 
-
 ### 响应示例
 
 ```json
@@ -117,16 +119,16 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 
 ```json
 {
-    "success": true,
-    "message": "success",
-    "data": {
-        "id": 6,
-        "username": null,
-        "merchantId": null,
-        "phoneNumber": "12345678",
-        "approvalStatus": "PENDING",
-        "rejectReason": null
-    }
+  "success": true,
+  "message": "success",
+  "data": {
+    "id": 6,
+    "username": null,
+    "merchantId": null,
+    "phoneNumber": "12345678",
+    "approvalStatus": "PENDING",
+    "rejectReason": null
+  }
 }
 ```
 
@@ -168,11 +170,10 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 
 **请求参数说明**：
 
-| 字段名          | 字段类型      | 字段说明 | 是否必填 | 备注/校验规则                   |
-|--------------|-----------|------|------|---------------------------|
-| `identifier` | `string`  | 标识符  | 是    | 可以是手机号、商户ID、管理员账号，不超过50字符 |
-| `password`   | `string`  | 密码   | 是    | 长度在6-50之间                 |
-
+| 字段名          | 字段类型     | 字段说明 | 是否必填 | 备注/校验规则                   |
+|--------------|----------|------|------|---------------------------|
+| `identifier` | `string` | 标识符  | 是    | 可以是手机号、商户ID、管理员账号，不超过50字符 |
+| `password`   | `string` | 密码   | 是    | 长度在6-50之间                 |
 
 ### 响应示例
 
@@ -197,7 +198,6 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 |-----------|----------|-----------|--------------|
 | `account` | `object` | 账户数据对象    | 与注册时返回数据格式相同 |
 | `token`   | `string` | JWT Token |              |
-
 
 ## POST 审核接口
 
@@ -233,8 +233,6 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 | `merchantPhoneNumber` | `string`  | 待审核商户手机号 | 是    | 不超过20位             |
 | `approved`            | `boolean` | 审核是否通过   | 是    | `true`通过，`false`驳回 |
 | `rejectReason`        | `string`  | 驳回理由     | 否    | 不超过50字符            |
-
-
 
 ### 响应示例
 

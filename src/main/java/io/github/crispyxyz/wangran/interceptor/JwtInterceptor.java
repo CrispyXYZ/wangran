@@ -9,6 +9,7 @@ import io.github.crispyxyz.wangran.util.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.io.IOException;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class JwtInterceptor implements HandlerInterceptor {
     private static final String AUTH_HEADER = "Authorization";
     private static final String AUTH_PREFIX = "Bearer ";
@@ -26,11 +28,6 @@ public class JwtInterceptor implements HandlerInterceptor {
      * 用于 JSON 序列化
      */
     private final ObjectMapper objectMapper;
-
-    @Autowired
-    public JwtInterceptor(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {

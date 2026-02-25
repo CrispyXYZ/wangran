@@ -1,9 +1,9 @@
-package io.github.crispyxyz.wangran.dto;
+package io.github.crispyxyz.wangran.response;
 
 import lombok.Data;
 
 @Data
-public class ReviewResultDTO {
+public class ReviewResponse {
     /**
      * 审核是否通过
      */

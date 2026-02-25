@@ -1,15 +1,19 @@
 package io.github.crispyxyz.wangran.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import io.github.crispyxyz.wangran.dto.*;
-import io.github.crispyxyz.wangran.entity.Merchant;
-import io.github.crispyxyz.wangran.entity.User;
 import io.github.crispyxyz.wangran.exception.*;
 import io.github.crispyxyz.wangran.mapper.MerchantMapper;
 import io.github.crispyxyz.wangran.mapper.UserMapper;
+import io.github.crispyxyz.wangran.model.Merchant;
+import io.github.crispyxyz.wangran.model.User;
+import io.github.crispyxyz.wangran.request.LoginRequest;
+import io.github.crispyxyz.wangran.request.RegisterRequest;
+import io.github.crispyxyz.wangran.request.ReviewRequest;
+import io.github.crispyxyz.wangran.response.*;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,31 +22,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class AuthServiceImpl implements AuthService {
 
     private final ModelMapper modelMapper;
     private final UserMapper userMapper;
     private final MerchantMapper merchantMapper;
 
-    @Autowired
-    public AuthServiceImpl(ModelMapper modelMapper, UserMapper userMapper, MerchantMapper merchantMapper) {
-        this.modelMapper = modelMapper;
-        this.userMapper = userMapper;
-        this.merchantMapper = merchantMapper;
-    }
-
     /**
      * 用户/商户注册，不允许同一手机号重复注册
      *
-     * @param registerRequestDTO 注册请求参数，包含手机号、密码和用户类型
+     * @param registerRequest 注册请求参数，包含手机号、密码和用户类型
      * @return 注册成功后的账户信息
      * @throws ResourceConflictException 当手机号已被注册时抛出
      * @throws SystemException           当SHA-256算法不可用时
      */
     @Transactional
     @Override
-    public AccountDTO register(RegisterRequestDTO registerRequestDTO) {
-        String phoneNumber = registerRequestDTO.getPhoneNumber();
+    public AccountResponse register(RegisterRequest registerRequest) {
+        String phoneNumber = registerRequest.getPhoneNumber();
         log.debug("开始处理注册，phoneNumber={}", phoneNumber);
 
         // 检查手机号是否已被注册
@@ -51,28 +49,28 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 对输入的密码进行 SHA-256 编码
-        byte[] passwordSha256 = SecurityUtil.computeSha256(registerRequestDTO.getPassword());
+        byte[] passwordSha256 = SecurityUtil.computeSha256(registerRequest.getPassword());
 
-        if (registerRequestDTO.getMerchant()) {
+        if (registerRequest.getMerchant()) {
             // 商户注册逻辑
             Merchant merchant = new Merchant();
-            merchant.setPhoneNumber(registerRequestDTO.getPhoneNumber());
+            merchant.setPhoneNumber(registerRequest.getPhoneNumber());
             merchant.setPasswordSha256(passwordSha256);
             merchant.setApprovalStatus(0);
             merchantMapper.insert(merchant);
 
             log.debug("注册为商户成功，phoneNumber={}", phoneNumber);
-            return modelMapper.map(merchant, MerchantDTO.class);
+            return modelMapper.map(merchant, MerchantResponse.class);
         } else {
             // 用户注册逻辑
             User user = new User();
-            user.setPhoneNumber(registerRequestDTO.getPhoneNumber());
+            user.setPhoneNumber(registerRequest.getPhoneNumber());
             user.setPasswordSha256(passwordSha256);
             user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
             userMapper.insert(user);
 
             log.debug("注册为普通用户成功，phoneNumber={}", phoneNumber);
-            return modelMapper.map(user, UserDTO.class);
+            return modelMapper.map(user, UserResponse.class);
         }
     }
 
@@ -80,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
      * 用户/商户登录验证。
      * 支持管理员登录、商户id、手机号登录。其中手机号优先匹配普通用户
      *
-     * @param loginRequestDTO 登录请求参数，包含标识符(手机号或商户ID)和密码
+     * @param loginRequest 登录请求参数，包含标识符(手机号或商户ID)和密码
      * @return 登录成功后的 JWT token 和账户信息
      * @throws AuthException             当密码验证失败时抛出
      * @throws ResourceNotFoundException 当用户不存在时抛出
@@ -89,16 +87,16 @@ public class AuthServiceImpl implements AuthService {
      */
     @Transactional(readOnly = true)
     @Override
-    public LoginDTO login(LoginRequestDTO loginRequestDTO) {
-        String identifier = loginRequestDTO.getIdentifier();
-        String password = loginRequestDTO.getPassword();
+    public LoginResponse login(LoginRequest loginRequest) {
+        String identifier = loginRequest.getIdentifier();
+        String password = loginRequest.getPassword();
         log.debug("开始处理登录，identifier={}", identifier);
 
         // 判断管理员登录
         if ("AdminMaster".equals(identifier) && "AdminMaster".equals(password)) {
             log.debug("登录为管理员成功，identifier={}", identifier);
             // 成功
-            return new LoginDTO(null, SecurityUtil.createJwtToken("AdminMaster", "admin"));
+            return new LoginResponse(null, SecurityUtil.createJwtToken("AdminMaster", "admin"));
         }
 
         // 判断商户 id 登录，注意：此处不再判断商户的审核状态，因为具有商户id的商户一定通过了审核
@@ -121,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
             // 成功
             log.debug("商户id登录成功，identifier={}", identifier);
 
-            return new LoginDTO(modelMapper.map(merchant, MerchantDTO.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
+            return new LoginResponse(modelMapper.map(merchant, MerchantResponse.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
         }
 
         // 商户 id 匹配失败，尝试普通用户手机号登录
@@ -139,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
             }
             // 成功
             log.debug("普通用户手机号登录成功，identifier={}", identifier);
-            return new LoginDTO(modelMapper.map(user, UserDTO.class), SecurityUtil.createJwtToken(user.getUsername(), "user"));
+            return new LoginResponse(modelMapper.map(user, UserResponse.class), SecurityUtil.createJwtToken(user.getUsername(), "user"));
         }
 
         // 普通用户手机号匹配失败，尝试商户手机号登录
@@ -166,7 +164,7 @@ public class AuthServiceImpl implements AuthService {
 
             // 成功
             log.debug("商户手机号登录成功，identifier={}", identifier);
-            return new LoginDTO(modelMapper.map(merchant, MerchantDTO.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
+            return new LoginResponse(modelMapper.map(merchant, MerchantResponse.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
         }
 
         // 所有登录方式均失败，用户不存在
@@ -178,14 +176,14 @@ public class AuthServiceImpl implements AuthService {
      * 审核通过则分配商户id和昵称，审核状态变更为1，并把拒绝原因设为空字符串。
      * 审核不通过则将审核状态变更为2，记录拒绝原因
      *
-     * @param reviewRequestDTO 审核请求参数，包含商户手机号和审核结果
+     * @param reviewRequest 审核请求参数，包含商户手机号和审核结果
      * @return 审核结果信息
      * @throws ResourceNotFoundException 当商户不存在时抛出
      * @throws SystemException           当SHA-256算法不可用时
      */
     @Override
-    public ReviewResultDTO review(ReviewRequestDTO reviewRequestDTO) {
-        String merchantPhoneNumber = reviewRequestDTO.getMerchantPhoneNumber();
+    public ReviewResponse review(ReviewRequest reviewRequest) {
+        String merchantPhoneNumber = reviewRequest.getMerchantPhoneNumber();
         log.debug("开始处理审核，merchantPhoneNumber={}", merchantPhoneNumber);
 
         // 根据手机号查询商户
@@ -200,7 +198,7 @@ public class AuthServiceImpl implements AuthService {
 
 
         // 处理审核结果
-        if (reviewRequestDTO.getApproved()) {
+        if (reviewRequest.getApproved()) {
             // 审核通过
             log.debug("审核通过，merchantPhoneNumber={}", merchantPhoneNumber);
 
@@ -226,15 +224,15 @@ public class AuthServiceImpl implements AuthService {
             log.debug("审核不通过，merchantPhoneNumber={}", merchantPhoneNumber);
 
             merchant.setApprovalStatus(2);
-            merchant.setRejectReason(reviewRequestDTO.getRejectReason());
+            merchant.setRejectReason(reviewRequest.getRejectReason());
 
             merchantMapper.updateById(merchant);
         }
 
         // 生成返回数据
-        ReviewResultDTO result = new ReviewResultDTO();
+        ReviewResponse result = new ReviewResponse();
         result.setPhoneNumber(merchantPhoneNumber);
-        result.setApproved(reviewRequestDTO.getApproved());
+        result.setApproved(reviewRequest.getApproved());
         result.setMerchantId(merchant.getMerchantId());
         result.setUsername(merchant.getUsername());
 

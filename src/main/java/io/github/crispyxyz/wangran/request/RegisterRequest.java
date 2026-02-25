@@ -1,4 +1,4 @@
-package io.github.crispyxyz.wangran.dto;
+package io.github.crispyxyz.wangran.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +10,7 @@ import lombok.Data;
  * 接收注册请求数据
  */
 @Data
-public class RegisterRequestDTO {
+public class RegisterRequest {
     /**
      * 不超过20位的手机号，纯数字，非空
      */

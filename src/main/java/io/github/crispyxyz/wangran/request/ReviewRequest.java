@@ -1,4 +1,4 @@
-package io.github.crispyxyz.wangran.dto;
+package io.github.crispyxyz.wangran.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +9,7 @@ import lombok.Data;
  * 接收管理员进行商户审核时前端提交的数据
  */
 @Data
-public class ReviewRequestDTO {
+public class ReviewRequest {
 
     /**
      * 商户手机号

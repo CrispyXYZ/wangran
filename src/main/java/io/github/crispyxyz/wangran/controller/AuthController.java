@@ -1,9 +1,16 @@
 package io.github.crispyxyz.wangran.controller;
 
-import io.github.crispyxyz.wangran.dto.*;
+import io.github.crispyxyz.wangran.request.LoginRequest;
+import io.github.crispyxyz.wangran.request.RegisterRequest;
+import io.github.crispyxyz.wangran.request.ReviewRequest;
+import io.github.crispyxyz.wangran.response.AccountResponse;
+import io.github.crispyxyz.wangran.response.BaseResponse;
+import io.github.crispyxyz.wangran.response.LoginResponse;
+import io.github.crispyxyz.wangran.response.ReviewResponse;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,25 +25,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class AuthController {
 
     private final AuthService authService;
 
-    @Autowired
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
-
     /**
      * 用户注册接口
      *
-     * @param registerRequestDTO 注册请求参数
+     * @param registerRequest 注册请求参数
      * @return 注册成功的账户信息
      */
     @PostMapping("/register")
-    public ResponseEntity<ResponseDTO<?>> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
-        log.info("接收注册请求: {}", registerRequestDTO);
-        AccountDTO data = authService.register(registerRequestDTO);
+    public ResponseEntity<BaseResponse<?>> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        log.info("接收注册请求: {}", registerRequest);
+        AccountResponse data = authService.register(registerRequest);
         log.info("注册请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }
@@ -44,13 +47,13 @@ public class AuthController {
     /**
      * 用户登录接口
      *
-     * @param loginRequestDTO 登录请求参数
+     * @param loginRequest 登录请求参数
      * @return 登录成功的账户信息
      */
     @PostMapping("/login")
-    public ResponseEntity<ResponseDTO<?>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
-        log.info("接收登录请求: {}", loginRequestDTO);
-        LoginDTO data = authService.login(loginRequestDTO);
+    public ResponseEntity<BaseResponse<?>> login(@Valid @RequestBody LoginRequest loginRequest) {
+        log.info("接收登录请求: {}", loginRequest);
+        LoginResponse data = authService.login(loginRequest);
         log.info("登录请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }
@@ -58,13 +61,13 @@ public class AuthController {
     /**
      * 审核接口
      *
-     * @param reviewRequestDTO 审核请求参数
+     * @param reviewRequest 审核请求参数
      * @return 审核结果
      */
     @PostMapping("/review")
-    public ResponseEntity<ResponseDTO<?>> review(@Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
-        log.info("接收审核请求: {}", reviewRequestDTO);
-        ReviewResultDTO data = authService.review(reviewRequestDTO);
+    public ResponseEntity<BaseResponse<?>> review(@Valid @RequestBody ReviewRequest reviewRequest) {
+        log.info("接收审核请求: {}", reviewRequest);
+        ReviewResponse data = authService.review(reviewRequest);
         log.info("审核请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }
