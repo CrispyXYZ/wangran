@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.crispyxyz.wangran.mapper.UserEventMapper">
+
+    <resultMap id="BaseResultMap" type="io.github.crispyxyz.wangran.model.UserEvent">
+            <id property="id" column="id" />
+            <result property="ticketCode" column="ticket_code" />
+            <result property="createTime" column="create_time" />
+            <result property="refunded" column="refunded" />
+            <result property="userId" column="user_id" />
+            <result property="eventId" column="event_id" />
+            <result property="deleted" column="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,ticket_code,create_time,refunded,user_id,event_id,
+        deleted
+    </sql>
+</mapper>

@@ -5,16 +5,31 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-@TableName("merchants")
+/**
+ *
+ */
+@TableName(value = "merchant")
 @Data
 public class Merchant {
+    /**
+     *
+     */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
+    /**
+     *
+     */
     private String username;
 
+    /**
+     *
+     */
     private String merchantId;
 
+    /**
+     *
+     */
     private String phoneNumber;
 
     /**
@@ -22,7 +37,18 @@ public class Merchant {
      */
     private Integer approvalStatus;
 
+    /**
+     *
+     */
     private String rejectReason;
 
+    /**
+     *
+     */
+    private Integer deleted;
+
+    /**
+     *
+     */
     private byte[] passwordSha256;
 }

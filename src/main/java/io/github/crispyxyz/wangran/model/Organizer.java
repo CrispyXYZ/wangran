@@ -11,9 +11,9 @@ import java.util.List;
 /**
  *
  */
-@TableName(value = "user_table")
+@TableName(value = "organizer")
 @Data
-public class User {
+public class Organizer {
     /**
      *
      */
@@ -23,7 +23,7 @@ public class User {
     /**
      *
      */
-    private String username;
+    private String name;
 
     /**
      *
@@ -33,13 +33,13 @@ public class User {
     /**
      *
      */
-    private Integer deleted;
+    private String address;
 
     /**
      *
      */
-    private byte[] passwordSha256;
+    private Integer deleted;
 
     @TableField(exist = false)
-    private List<UserEvent> userEvents;
+    private List<Event> events;
 }

@@ -1,19 +1,18 @@
 package io.github.crispyxyz.wangran.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Date;
 
 /**
  *
  */
-@TableName(value = "user_table")
+@TableName(value = "user_event")
 @Data
-public class User {
+public class UserEvent {
     /**
      *
      */
@@ -23,23 +22,30 @@ public class User {
     /**
      *
      */
-    private String username;
+    private String ticketCode;
 
     /**
      *
      */
-    private String phoneNumber;
+    private Date createTime;
+
+    /**
+     *
+     */
+    private Integer refunded;
+
+    /**
+     *
+     */
+    private Integer userId;
+
+    /**
+     *
+     */
+    private Integer eventId;
 
     /**
      *
      */
     private Integer deleted;
-
-    /**
-     *
-     */
-    private byte[] passwordSha256;
-
-    @TableField(exist = false)
-    private List<UserEvent> userEvents;
 }
