@@ -1,0 +1,63 @@
+package io.github.crispyxyz.wangran.controller;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.github.crispyxyz.wangran.component.ModelMapperHelper;
+import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
+import io.github.crispyxyz.wangran.model.User;
+import io.github.crispyxyz.wangran.request.CreateAccountRequest;
+import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
+import io.github.crispyxyz.wangran.response.BaseResponse;
+import io.github.crispyxyz.wangran.response.PageResponse;
+import io.github.crispyxyz.wangran.response.UserResponse;
+import io.github.crispyxyz.wangran.service.AuthService;
+import io.github.crispyxyz.wangran.service.UserService;
+import io.github.crispyxyz.wangran.util.ResponseUtil;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
+public class UserController {
+    private final UserService userService;
+    private final ModelMapperHelper modelMapperHelper;
+    private final ModelMapper modelMapper;
+    private final AuthService authService;
+
+    @GetMapping
+    public BaseResponse<PageResponse<UserResponse>> getUsers(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int pageSize) {
+        IPage<User> pageInfo = userService.getUsers(page, pageSize);
+        PageResponse<UserResponse> pageResponse = new PageResponse<>(modelMapperHelper.mapPage(pageInfo, UserResponse.class));
+        return ResponseUtil.success(pageResponse);
+    }
+
+    @GetMapping("/{id}")
+    public BaseResponse<UserResponse> getUser(@PathVariable int id) {
+        UserResponse userResponse = modelMapper.map(userService.getById(id), UserResponse.class);
+        return ResponseUtil.success(userResponse);
+    }
+
+    @PostMapping
+    public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
+        UserResponse userResponse = (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
+        return ResponseUtil.success(userResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public BaseResponse<Void> deleteUser(@PathVariable int id) {
+        if (userService.removeById(id)) {
+            return ResponseUtil.success(null);
+        } else {
+            throw new ResourceNotFoundException("找不到id为" + id + "的用户");
+        }
+    }
+
+    @PatchMapping("/{id}")
+    public BaseResponse<UserResponse> updateUser(@PathVariable int id, @Valid @RequestBody UpdateAccountRequest request) {
+        UserResponse userResponse = modelMapper.map(userService.partialUpdate(id, request), UserResponse.class);
+        return ResponseUtil.success(userResponse);
+    }
+}

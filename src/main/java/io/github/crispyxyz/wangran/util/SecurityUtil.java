@@ -80,8 +80,7 @@ public class SecurityUtil {
         return JWT.create()
                   .withSubject(username)
                   .withIssuedAt(new Date())
-                  .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 1000))
-                  // 1 分钟（用于测试）
+                  .withExpiresAt(new Date(System.currentTimeMillis() + 3600 * 1000))
                   .withClaim("role", role)
                   .sign(Algorithm.HMAC256(JWT_KEY));
     }

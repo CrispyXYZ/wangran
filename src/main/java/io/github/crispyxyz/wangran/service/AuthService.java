@@ -1,7 +1,6 @@
 package io.github.crispyxyz.wangran.service;
 
 import io.github.crispyxyz.wangran.request.LoginRequest;
-import io.github.crispyxyz.wangran.request.RegisterRequest;
 import io.github.crispyxyz.wangran.request.ReviewRequest;
 import io.github.crispyxyz.wangran.response.AccountResponse;
 import io.github.crispyxyz.wangran.response.LoginResponse;
@@ -14,10 +13,12 @@ public interface AuthService {
     /**
      * 注册新账户
      *
-     * @param registerRequest 注册请求参数
+     * @param phoneNumber 手机号
+     * @param password    密码
+     * @param isMerchant  是否为商户注册
      * @return 注册成功后的账户信息
      */
-    AccountResponse register(RegisterRequest registerRequest);
+    AccountResponse register(String phoneNumber, String password, boolean isMerchant);
 
     /**
      * 账户登录验证

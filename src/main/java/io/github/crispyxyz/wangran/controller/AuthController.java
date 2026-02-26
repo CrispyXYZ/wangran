@@ -39,7 +39,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<BaseResponse<?>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         log.info("接收注册请求: {}", registerRequest);
-        AccountResponse data = authService.register(registerRequest);
+        AccountResponse data = authService.register(registerRequest.getPhoneNumber(), registerRequest.getPassword(), registerRequest.getMerchant());
         log.info("注册请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }

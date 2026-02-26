@@ -7,10 +7,10 @@ import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.LoginRequest;
-import io.github.crispyxyz.wangran.request.RegisterRequest;
 import io.github.crispyxyz.wangran.request.ReviewRequest;
 import io.github.crispyxyz.wangran.response.*;
 import io.github.crispyxyz.wangran.service.AuthService;
+import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,33 +28,35 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserMapper userMapper;
     private final MerchantMapper merchantMapper;
+    private final UserService userService;
 
     /**
      * 用户/商户注册，不允许同一手机号重复注册
      *
-     * @param registerRequest 注册请求参数，包含手机号、密码和用户类型
+     * @param phoneNumber 手机号
+     * @param password    密码
+     * @param isMerchant  是否为商户注册
      * @return 注册成功后的账户信息
      * @throws ResourceConflictException 当手机号已被注册时抛出
      * @throws SystemException           当SHA-256算法不可用时
      */
     @Transactional
     @Override
-    public AccountResponse register(RegisterRequest registerRequest) {
-        String phoneNumber = registerRequest.getPhoneNumber();
+    public AccountResponse register(String phoneNumber, String password, boolean isMerchant) {
         log.debug("开始处理注册，phoneNumber={}", phoneNumber);
 
         // 检查手机号是否已被注册
-        if (existUser(phoneNumber) || existMerchant(phoneNumber)) {
+        if (userService.existPhoneNumber(phoneNumber) || existMerchant(phoneNumber)) {
             throw new ResourceConflictException("该手机号已被注册");
         }
 
         // 对输入的密码进行 SHA-256 编码
-        byte[] passwordSha256 = SecurityUtil.computeSha256(registerRequest.getPassword());
+        byte[] passwordSha256 = SecurityUtil.computeSha256(password);
 
-        if (registerRequest.getMerchant()) {
+        if (isMerchant) {
             // 商户注册逻辑
             Merchant merchant = new Merchant();
-            merchant.setPhoneNumber(registerRequest.getPhoneNumber());
+            merchant.setPhoneNumber(phoneNumber);
             merchant.setPasswordSha256(passwordSha256);
             merchant.setApprovalStatus(0);
             merchantMapper.insert(merchant);
@@ -64,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
         } else {
             // 用户注册逻辑
             User user = new User();
-            user.setPhoneNumber(registerRequest.getPhoneNumber());
+            user.setPhoneNumber(phoneNumber);
             user.setPasswordSha256(passwordSha256);
             user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
             userMapper.insert(user);
@@ -238,21 +240,6 @@ public class AuthServiceImpl implements AuthService {
 
         log.debug("审核处理成功，merchantPhoneNumber={}", merchantPhoneNumber);
         return result;
-    }
-
-
-    /**
-     * 检查手机号是否已注册为用户
-     *
-     * @param phoneNumber 手机号
-     * @return 是否存在该用户
-     */
-    private boolean existUser(String phoneNumber) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getPhoneNumber, phoneNumber);
-
-        Long count = userMapper.selectCount(queryWrapper);
-        return count != null && count > 0;
     }
 
     /**
