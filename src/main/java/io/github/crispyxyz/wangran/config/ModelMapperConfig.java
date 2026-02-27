@@ -16,12 +16,13 @@ public class ModelMapperConfig {
         // 审核状态转换，将数据库中的整数状态码转换为字符串
         Converter<Integer, String> approvalStatusConverter = context -> {
             Integer source = context.getSource();
-            if (source == null) return null;
+            if (source == null)
+                return null;
 
             return switch (source) {
-                case 0 -> "PENDING";
-                case 1 -> "APPROVED";
-                case 2 -> "REJECTED";
+                case Merchant.STATUS_PENDING -> "PENDING";
+                case Merchant.STATUS_APPROVED -> "APPROVED";
+                case Merchant.STATUS_REJECTED -> "REJECTED";
                 default -> "ERROR";
             };
         };

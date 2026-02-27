@@ -1,17 +1,13 @@
 package io.github.crispyxyz.wangran.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import io.github.crispyxyz.wangran.exception.ResourceConflictException;
-import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.UserService;
-import io.github.crispyxyz.wangran.util.SecurityUtil;
+import io.github.crispyxyz.wangran.util.GenerationUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  */
 @Service
-public class UserServiceImpl extends BaseUniqueCheckService<UserMapper, User>
-implements UserService {
+public class UserServiceImpl extends BaseEntityService<UserMapper, User> implements UserService {
 
     @Override
     public IPage<User> getUsers(int page, int pageSize) {
@@ -33,31 +28,12 @@ implements UserService {
     @Transactional
     @Override
     public User partialUpdate(int id, UpdateAccountRequest request) {
-        LambdaUpdateWrapper<User> wrapper = Wrappers.lambdaUpdate(User.class)
-                                                    .eq(User::getId, id);
-
-        if (request.getPhoneNumber() != null) {
-            if (isFieldConflict(User::getPhoneNumber, request.getPhoneNumber(), id)) {
-                throw new ResourceConflictException("该手机号已被占用");
-            }
-            wrapper.set(User::getPhoneNumber, request.getPhoneNumber());
-        }
-        if (request.getUsername() != null) {
-            if (isFieldConflict(User::getUsername, request.getUsername(), id)) {
-                throw new ResourceConflictException("该昵称已被占用");
-            }
-            wrapper.set(User::getUsername, request.getUsername());
-        }
-        if (request.getPassword() != null) {
-            byte[] passwordSha256 = SecurityUtil.computeSha256(request.getPassword());
-            wrapper.set(User::getPasswordSha256, passwordSha256);
-        }
-
-        if (!update(wrapper)) {
-            throw new ResourceNotFoundException("该用户不存在");
-        }
-
-        return this.getById(id);
+        // 这里用 this 是为了格式化后对齐更好看
+        return this.updateBuilder(id)
+                   .setUnique(User::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
+                   .setUnique(User::getUsername, request.getUsername(), "该昵称已被占用")
+                   .setPassword(User::getPasswordSha256, request.getPassword())
+                   .execute();
     }
 
     @Override
@@ -71,11 +47,22 @@ implements UserService {
     }
 
     @Override
+    public User create(String phoneNumber, byte[] passwordSha256) {
+        User user = new User();
+        user.setPhoneNumber(phoneNumber);
+        user.setPasswordSha256(passwordSha256);
+        user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
+        save(user);
+        return user;
+    }
+
+    @Override
+    public User findByPhoneNumber(String phoneNumber) {
+        return lambdaQuery().eq(User::getPhoneNumber, phoneNumber).one();
+    }
+
+    @Override
     protected SFunction<User, ?> getIdField() {
         return User::getId;
     }
 }
-
-
-
-

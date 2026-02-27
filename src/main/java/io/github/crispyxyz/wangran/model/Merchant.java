@@ -11,6 +11,10 @@ import lombok.Data;
 @TableName(value = "merchant")
 @Data
 public class Merchant {
+    public static final int STATUS_PENDING = 0;
+    public static final int STATUS_APPROVED = 1;
+    public static final int STATUS_REJECTED = 2;
+
     /**
      *
      */

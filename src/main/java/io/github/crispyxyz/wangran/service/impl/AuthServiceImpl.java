@@ -1,20 +1,17 @@
 package io.github.crispyxyz.wangran.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.crispyxyz.wangran.exception.*;
-import io.github.crispyxyz.wangran.mapper.MerchantMapper;
-import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.LoginRequest;
-import io.github.crispyxyz.wangran.request.ReviewRequest;
 import io.github.crispyxyz.wangran.response.*;
 import io.github.crispyxyz.wangran.service.AuthService;
+import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.UserService;
-import io.github.crispyxyz.wangran.util.GenerationUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,9 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
 
     private final ModelMapper modelMapper;
-    private final UserMapper userMapper;
-    private final MerchantMapper merchantMapper;
     private final UserService userService;
+    private final MerchantService merchantService;
 
     /**
      * 用户/商户注册，不允许同一手机号重复注册
@@ -46,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         log.debug("开始处理注册，phoneNumber={}", phoneNumber);
 
         // 检查手机号是否已被注册
-        if (userService.existPhoneNumber(phoneNumber) || existMerchant(phoneNumber)) {
+        if (userService.existPhoneNumber(phoneNumber) || merchantService.existPhoneNumber(phoneNumber)) {
             throw new ResourceConflictException("该手机号已被注册");
         }
 
@@ -54,24 +50,10 @@ public class AuthServiceImpl implements AuthService {
         byte[] passwordSha256 = SecurityUtil.computeSha256(password);
 
         if (isMerchant) {
-            // 商户注册逻辑
-            Merchant merchant = new Merchant();
-            merchant.setPhoneNumber(phoneNumber);
-            merchant.setPasswordSha256(passwordSha256);
-            merchant.setApprovalStatus(0);
-            merchantMapper.insert(merchant);
-
-            log.debug("注册为商户成功，phoneNumber={}", phoneNumber);
+            Merchant merchant = merchantService.create(phoneNumber, passwordSha256);
             return modelMapper.map(merchant, MerchantResponse.class);
         } else {
-            // 用户注册逻辑
-            User user = new User();
-            user.setPhoneNumber(phoneNumber);
-            user.setPasswordSha256(passwordSha256);
-            user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
-            userMapper.insert(user);
-
-            log.debug("注册为普通用户成功，phoneNumber={}", phoneNumber);
+            User user = userService.create(phoneNumber, passwordSha256);
             return modelMapper.map(user, UserResponse.class);
         }
     }
@@ -101,158 +83,61 @@ public class AuthServiceImpl implements AuthService {
             return new LoginResponse(null, SecurityUtil.createJwtToken("AdminMaster", "admin"));
         }
 
-        // 判断商户 id 登录，注意：此处不再判断商户的审核状态，因为具有商户id的商户一定通过了审核
+        // 判断商户 id 登录
         if (identifier.startsWith("mid_")) {
             log.debug("商户id登录，identifier={}", identifier);
             // 通过id获取数据库中的对应商户
-            LambdaQueryWrapper<Merchant> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(Merchant::getMerchantId, identifier);
-            Merchant merchant = merchantMapper.selectOne(queryWrapper);
+            Merchant merchant = merchantService.findByMerchantId(identifier);
 
-            if (merchant == null) {
-                throw new ResourceNotFoundException("不存在该用户");
+            if (merchant != null) {
+                return handleMerchantLogin(merchant, password);
             }
-
-            // 验证密码
-            boolean success = SecurityUtil.verifySha256(password, merchant.getPasswordSha256());
-            if (!success) {
-                throw new AuthException("密码错误");
-            }
-            // 成功
-            log.debug("商户id登录成功，identifier={}", identifier);
-
-            return new LoginResponse(modelMapper.map(merchant, MerchantResponse.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
         }
 
         // 商户 id 匹配失败，尝试普通用户手机号登录
-        LambdaQueryWrapper<User> wrapperUser = new LambdaQueryWrapper<>();
-        wrapperUser.eq(User::getPhoneNumber, identifier);
-
-        User user = userMapper.selectOne(wrapperUser);
-
+        User user = userService.findByPhoneNumber(identifier);
         if (user != null) {
-            log.debug("普通用户手机号登录，identifier={}", identifier);
-            // 匹配密码
-            boolean success = SecurityUtil.verifySha256(password, user.getPasswordSha256());
-            if (!success) {
-                throw new AuthException("密码错误");
-            }
-            // 成功
-            log.debug("普通用户手机号登录成功，identifier={}", identifier);
-            return new LoginResponse(modelMapper.map(user, UserResponse.class), SecurityUtil.createJwtToken(user.getUsername(), "user"));
+            return handleUserLogin(user, password);
         }
 
         // 普通用户手机号匹配失败，尝试商户手机号登录
-        LambdaQueryWrapper<Merchant> wrapperMerchant = new LambdaQueryWrapper<>();
-        wrapperMerchant.eq(Merchant::getPhoneNumber, identifier);
-
-        Merchant merchant = merchantMapper.selectOne(wrapperMerchant);
-
+        Merchant merchant = merchantService.findByPhoneNumber(identifier);
         if (merchant != null) {
-            log.debug("商户手机号登录，identifier={}", identifier);
-            // 先验证密码
-            boolean success = SecurityUtil.verifySha256(password, merchant.getPasswordSha256());
-            if (!success) {
-                throw new AuthException("密码错误");
-            }
-
-            // 验证审核状态
-            if (merchant.getApprovalStatus() == 0) {
-                throw new MerchantApprovalException("审核中，请等待");
-            }
-            if (merchant.getApprovalStatus() == 2) {
-                throw new MerchantApprovalException("审核不通过，原因：" + merchant.getRejectReason());
-            }
-
-            // 成功
-            log.debug("商户手机号登录成功，identifier={}", identifier);
-            return new LoginResponse(modelMapper.map(merchant, MerchantResponse.class), SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
+            return handleMerchantLogin(merchant, password);
         }
 
         // 所有登录方式均失败，用户不存在
         throw new ResourceNotFoundException("不存在该用户");
     }
 
-    /**
-     * 审核商户注册。
-     * 审核通过则分配商户id和昵称，审核状态变更为1，并把拒绝原因设为空字符串。
-     * 审核不通过则将审核状态变更为2，记录拒绝原因
-     *
-     * @param reviewRequest 审核请求参数，包含商户手机号和审核结果
-     * @return 审核结果信息
-     * @throws ResourceNotFoundException 当商户不存在时抛出
-     * @throws SystemException           当SHA-256算法不可用时
-     */
-    @Override
-    public ReviewResponse review(ReviewRequest reviewRequest) {
-        String merchantPhoneNumber = reviewRequest.getMerchantPhoneNumber();
-        log.debug("开始处理审核，merchantPhoneNumber={}", merchantPhoneNumber);
-
-        // 根据手机号查询商户
-        LambdaQueryWrapper<Merchant> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Merchant::getPhoneNumber, merchantPhoneNumber);
-
-        Merchant merchant = merchantMapper.selectOne(queryWrapper);
-
-        if (merchant == null) {
-            throw new ResourceNotFoundException("商户不存在");
+    private @NonNull LoginResponse handleUserLogin(User user, String password) {
+        // 匹配密码
+        boolean success = SecurityUtil.verifySha256(password, user.getPasswordSha256());
+        if (!success) {
+            throw new AuthException("密码错误");
         }
-
-
-        // 处理审核结果
-        if (reviewRequest.getApproved()) {
-            // 审核通过
-            log.debug("审核通过，merchantPhoneNumber={}", merchantPhoneNumber);
-
-            // 生成商户id
-            if (merchant.getMerchantId() == null) {
-                String id = GenerationUtil.generateUniqueMerchantId();
-                merchant.setMerchantId(id);
-            }
-
-            // 生成昵称
-            if (merchant.getUsername() == null) {
-                String username = GenerationUtil.generateUniqueUsername("merchant_");
-                merchant.setUsername(username);
-            }
-
-            // 其它属性
-            merchant.setApprovalStatus(1);
-            merchant.setRejectReason("");
-
-            merchantMapper.updateById(merchant);
-        } else {
-            // 审核不通过
-            log.debug("审核不通过，merchantPhoneNumber={}", merchantPhoneNumber);
-
-            merchant.setApprovalStatus(2);
-            merchant.setRejectReason(reviewRequest.getRejectReason());
-
-            merchantMapper.updateById(merchant);
-        }
-
-        // 生成返回数据
-        ReviewResponse result = new ReviewResponse();
-        result.setPhoneNumber(merchantPhoneNumber);
-        result.setApproved(reviewRequest.getApproved());
-        result.setMerchantId(merchant.getMerchantId());
-        result.setUsername(merchant.getUsername());
-
-        log.debug("审核处理成功，merchantPhoneNumber={}", merchantPhoneNumber);
-        return result;
+        // 成功
+        return new LoginResponse(modelMapper.map(user, UserResponse.class),
+                                 SecurityUtil.createJwtToken(user.getUsername(), "user"));
     }
 
-    /**
-     * 检查手机号是否已注册为商户
-     *
-     * @param phoneNumber 手机号
-     * @return 是否存在该商户
-     */
-    private boolean existMerchant(String phoneNumber) {
-        LambdaQueryWrapper<Merchant> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Merchant::getPhoneNumber, phoneNumber);
+    private @NonNull LoginResponse handleMerchantLogin(Merchant merchant, String password) {
+        // 先验证密码
+        boolean success = SecurityUtil.verifySha256(password, merchant.getPasswordSha256());
+        if (!success) {
+            throw new AuthException("密码错误");
+        }
 
-        Long count = merchantMapper.selectCount(queryWrapper);
-        return count != null && count > 0;
+        // 验证审核状态
+        if (merchant.getApprovalStatus() == 0) {
+            throw new MerchantApprovalException("审核中，请等待");
+        }
+        if (merchant.getApprovalStatus() == 2) {
+            throw new MerchantApprovalException("审核不通过，原因：" + merchant.getRejectReason());
+        }
+
+        // 成功
+        return new LoginResponse(modelMapper.map(merchant, MerchantResponse.class),
+                                 SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
     }
 }

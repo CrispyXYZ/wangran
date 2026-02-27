@@ -12,11 +12,6 @@ import org.springframework.stereotype.Service;
  *
  */
 @Service
-public class OrganizerServiceImpl extends ServiceImpl<OrganizerMapper, Organizer>
-implements OrganizerService {
+public class OrganizerServiceImpl extends ServiceImpl<OrganizerMapper, Organizer> implements OrganizerService {
 
 }
-
-
-
-

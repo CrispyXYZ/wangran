@@ -12,11 +12,6 @@ import org.springframework.stereotype.Service;
  *
  */
 @Service
-public class UserEventServiceImpl extends ServiceImpl<UserEventMapper, UserEvent>
-implements UserEventService {
+public class UserEventServiceImpl extends ServiceImpl<UserEventMapper, UserEvent> implements UserEventService {
 
 }
-
-
-
-

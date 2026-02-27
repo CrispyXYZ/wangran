@@ -28,21 +28,30 @@ public class UserController {
     private final AuthService authService;
 
     @GetMapping
-    public BaseResponse<PageResponse<UserResponse>> getUsers(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int pageSize) {
+    public BaseResponse<PageResponse<UserResponse>> getUsers(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int pageSize
+    ) {
         IPage<User> pageInfo = userService.getUsers(page, pageSize);
-        PageResponse<UserResponse> pageResponse = new PageResponse<>(modelMapperHelper.mapPage(pageInfo, UserResponse.class));
+        PageResponse<UserResponse> pageResponse =
+            new PageResponse<>(modelMapperHelper.mapPage(pageInfo, UserResponse.class));
         return ResponseUtil.success(pageResponse);
     }
 
     @GetMapping("/{id}")
     public BaseResponse<UserResponse> getUser(@PathVariable int id) {
-        UserResponse userResponse = modelMapper.map(userService.getById(id), UserResponse.class);
+        User user = userService.getById(id);
+        if (user == null) {
+            throw new ResourceNotFoundException("找不到id为" + id + "的用户");
+        }
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
         return ResponseUtil.success(userResponse);
     }
 
     @PostMapping
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
-        UserResponse userResponse = (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
+        UserResponse userResponse =
+            (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
         return ResponseUtil.success(userResponse);
     }
 
@@ -56,7 +65,10 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public BaseResponse<UserResponse> updateUser(@PathVariable int id, @Valid @RequestBody UpdateAccountRequest request) {
+    public BaseResponse<UserResponse> updateUser(
+        @PathVariable int id,
+        @Valid @RequestBody UpdateAccountRequest request
+    ) {
         UserResponse userResponse = modelMapper.map(userService.partialUpdate(id, request), UserResponse.class);
         return ResponseUtil.success(userResponse);
     }

@@ -2,9 +2,9 @@ package io.github.crispyxyz.wangran.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
-import jakarta.validation.Valid;
 
 /**
  *
@@ -14,9 +14,13 @@ import jakarta.validation.Valid;
 public interface UserService extends IService<User> {
     IPage<User> getUsers(int page, int pageSize);
 
-    User partialUpdate(int id, @Valid UpdateAccountRequest request);
+    User partialUpdate(int id, UpdateAccountRequest request);
 
     boolean existPhoneNumber(String phoneNumber);
 
     boolean existUsername(String username);
+
+    User create(String phoneNumber, byte[] passwordSha256);
+
+    User findByPhoneNumber(String phoneNumber);
 }

@@ -63,7 +63,8 @@ public class GlobalExceptionHandler {
                                             .stream()
                                             .map(err -> {
                                                 if (err instanceof FieldError fieldError) {
-                                                    return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                                                    return fieldError.getField() + ": " +
+                                                           fieldError.getDefaultMessage();
                                                 }
                                                 return err.getDefaultMessage();
                                             })

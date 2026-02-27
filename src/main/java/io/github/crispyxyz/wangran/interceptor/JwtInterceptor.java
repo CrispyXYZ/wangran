@@ -30,7 +30,11 @@ public class JwtInterceptor implements HandlerInterceptor {
     private final ObjectMapper objectMapper;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
+    public boolean preHandle(
+        HttpServletRequest request,
+        @NonNull HttpServletResponse response,
+        @NonNull Object handler
+    ) throws Exception {
         // 解析相关参数
         String token = request.getHeader(AUTH_HEADER);
         String requestURI = request.getRequestURI();

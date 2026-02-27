@@ -17,7 +17,7 @@ public class CreateAccountRequest {
     private String phoneNumber;
 
     /**
-     * 密码，长度6-50，不能为null，默认wangran123
+     * 密码，长度6-50，不能为null，可不填默认为wangran123
      */
     @Size(min = 6, max = 50)
     @NotNull

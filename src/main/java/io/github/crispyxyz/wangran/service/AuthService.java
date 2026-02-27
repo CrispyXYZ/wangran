@@ -1,10 +1,8 @@
 package io.github.crispyxyz.wangran.service;
 
 import io.github.crispyxyz.wangran.request.LoginRequest;
-import io.github.crispyxyz.wangran.request.ReviewRequest;
 import io.github.crispyxyz.wangran.response.AccountResponse;
 import io.github.crispyxyz.wangran.response.LoginResponse;
-import io.github.crispyxyz.wangran.response.ReviewResponse;
 
 /**
  * 认证服务接口，提供注册、审核和登录功能
@@ -27,12 +25,4 @@ public interface AuthService {
      * @return 登录成功后的 JWT token 和账户信息
      */
     LoginResponse login(LoginRequest loginRequest);
-
-    /**
-     * 审核商户注册申请
-     *
-     * @param reviewRequest 审核请求参数
-     * @return 审核结果信息
-     */
-    ReviewResponse review(ReviewRequest reviewRequest);
 }

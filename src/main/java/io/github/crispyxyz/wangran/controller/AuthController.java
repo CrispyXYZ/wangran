@@ -1,13 +1,14 @@
 package io.github.crispyxyz.wangran.controller;
 
+import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.request.LoginRequest;
 import io.github.crispyxyz.wangran.request.RegisterRequest;
 import io.github.crispyxyz.wangran.request.ReviewRequest;
 import io.github.crispyxyz.wangran.response.AccountResponse;
 import io.github.crispyxyz.wangran.response.BaseResponse;
 import io.github.crispyxyz.wangran.response.LoginResponse;
-import io.github.crispyxyz.wangran.response.ReviewResponse;
 import io.github.crispyxyz.wangran.service.AuthService;
+import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final MerchantService merchantService;
 
     /**
      * 用户注册接口
@@ -39,7 +41,9 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<BaseResponse<?>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         log.info("接收注册请求: {}", registerRequest);
-        AccountResponse data = authService.register(registerRequest.getPhoneNumber(), registerRequest.getPassword(), registerRequest.getMerchant());
+        AccountResponse data = authService.register(registerRequest.getPhoneNumber(),
+                                                    registerRequest.getPassword(),
+                                                    registerRequest.getMerchant());
         log.info("注册请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }
@@ -58,6 +62,7 @@ public class AuthController {
         return ResponseEntity.ok(ResponseUtil.success(data));
     }
 
+    // TODO 转移到管理员模块
     /**
      * 审核接口
      *
@@ -65,10 +70,12 @@ public class AuthController {
      * @return 审核结果
      */
     @PostMapping("/review")
-    public ResponseEntity<BaseResponse<?>> review(@Valid @RequestBody ReviewRequest reviewRequest) {
+    public BaseResponse<Merchant> review(@Valid @RequestBody ReviewRequest reviewRequest) {
         log.info("接收审核请求: {}", reviewRequest);
-        ReviewResponse data = authService.review(reviewRequest);
+        Merchant data = merchantService.reviewMerchant(reviewRequest.getMerchantPhoneNumber(),
+                                                       reviewRequest.getApproved(),
+                                                       reviewRequest.getRejectReason());
         log.info("审核请求成功: {}", data);
-        return ResponseEntity.ok(ResponseUtil.success(data));
+        return ResponseUtil.success(data);
     }
 }

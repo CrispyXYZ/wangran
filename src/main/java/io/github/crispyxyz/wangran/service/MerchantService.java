@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
-import jakarta.validation.Valid;
 
 /**
  *
@@ -12,11 +11,21 @@ import jakarta.validation.Valid;
  *
  */
 public interface MerchantService extends IService<Merchant> {
-    IPage<Merchant> getUsers(int page, int pageSize);
+    IPage<Merchant> getMerchants(int page, int pageSize);
 
-    void partialUpdate(int id, @Valid UpdateAccountRequest request);
+    Merchant partialUpdate(int id, UpdateAccountRequest request);
 
     boolean existPhoneNumber(String phoneNumber);
 
     boolean existUsername(String username);
+
+    Merchant reviewMerchant(String phoneNumber, boolean approved, String rejectReason);
+
+    Merchant create(String phoneNumber, byte[] passwordSha256);
+
+    Merchant createByAdmin(String phoneNumber, byte[] passwordSha256);
+
+    Merchant findByPhoneNumber(String phoneNumber);
+
+    Merchant findByMerchantId(String merchantId);
 }

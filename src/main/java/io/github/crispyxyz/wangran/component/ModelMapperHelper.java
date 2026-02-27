@@ -17,9 +17,7 @@ public class ModelMapperHelper {
     public <S, D> Page<D> mapPage(IPage<S> userPage, Class<D> destinationClass) {
         List<D> destinationList = userPage.getRecords()
                                           .stream()
-                                          .map(
-                                          user -> modelMapper.map(user, destinationClass)
-                                          )
+                                          .map(user -> modelMapper.map(user, destinationClass))
                                           .toList();
 
         Page<D> destinationPage = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
