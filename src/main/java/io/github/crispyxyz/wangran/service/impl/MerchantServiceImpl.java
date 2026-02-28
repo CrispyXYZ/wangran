@@ -1,8 +1,6 @@
 package io.github.crispyxyz.wangran.service.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.mapper.MerchantMapper;
 import io.github.crispyxyz.wangran.model.Merchant;
@@ -21,19 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merchant> implements MerchantService {
 
     @Override
-    public IPage<Merchant> getMerchants(int page, int pageSize) {
-        Page<Merchant> pageInfo = Page.of(page, pageSize);
-        return this.page(pageInfo);
-    }
-
-    @Override
     public Merchant partialUpdate(int id, UpdateAccountRequest request) {
-        // 这里用 this 是为了格式化后对齐更好看
-        return this.updateBuilder(id)
-                   .setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
-                   .setUnique(Merchant::getUsername, request.getUsername(), "该昵称已被占用")
-                   .setPassword(Merchant::getPasswordSha256, request.getPassword())
-                   .execute();
+        return updateBuilder(id).setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
+                                .setUnique(Merchant::getUsername, request.getUsername(), "该昵称已被占用")
+                                .setPassword(Merchant::getPasswordSha256, request.getPassword())
+                                .execute();
     }
 
     @Override
@@ -83,12 +73,14 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
 
     @Override
     public Merchant findByPhoneNumber(String phoneNumber) {
-        return lambdaQuery().eq(Merchant::getPhoneNumber, phoneNumber).one();
+        return lambdaQuery().eq(Merchant::getPhoneNumber, phoneNumber)
+                            .one();
     }
 
     @Override
     public Merchant findByMerchantId(String merchantId) {
-        return lambdaQuery().eq(Merchant::getMerchantId, merchantId).one();
+        return lambdaQuery().eq(Merchant::getMerchantId, merchantId)
+                            .one();
     }
 
     @Override

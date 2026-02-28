@@ -11,6 +11,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -89,5 +90,12 @@ public class GlobalExceptionHandler {
         log.warn(msg);
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                              .body(ResponseUtil.error(msg));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<BaseResponse<?>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        log.warn("匹配异常： {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                             .body(ResponseUtil.error(e.getMessage()));
     }
 }

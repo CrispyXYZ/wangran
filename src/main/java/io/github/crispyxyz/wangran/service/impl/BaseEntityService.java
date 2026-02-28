@@ -1,13 +1,17 @@
 package io.github.crispyxyz.wangran.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
+import io.github.crispyxyz.wangran.service.EntityService;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 
 import java.io.Serializable;
@@ -18,9 +22,26 @@ import java.io.Serializable;
  * @param <M> 实体类对应的 Mapper，应继承 BaseMapper
  * @param <T> 实体类
  */
-public abstract class BaseEntityService<M extends BaseMapper<T>, T> extends ServiceImpl<M, T> {
+public abstract class BaseEntityService<M extends BaseMapper<T>, T> extends ServiceImpl<M, T>
+    implements EntityService<T> {
 
     protected abstract SFunction<T, ?> getIdField();
+
+    /**
+     * 通用分页查询（无查询条件）
+     */
+    @Override
+    public IPage<T> getPage(int page, int pageSize) {
+        return page(Page.of(page, pageSize));
+    }
+
+    /**
+     * 支持条件构造器的分页查询（可被子类复用或直接调用）
+     */
+    @Override
+    public IPage<T> getPage(int page, int pageSize, Wrapper<T> queryWrapper) {
+        return page(Page.of(page, pageSize), queryWrapper);
+    }
 
     /**
      * 检查字段值是否冲突（排除自身）

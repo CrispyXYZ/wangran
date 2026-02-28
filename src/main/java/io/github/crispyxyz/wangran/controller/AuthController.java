@@ -41,9 +41,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<BaseResponse<?>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         log.info("接收注册请求: {}", registerRequest);
-        AccountResponse data = authService.register(registerRequest.getPhoneNumber(),
-                                                    registerRequest.getPassword(),
-                                                    registerRequest.getMerchant());
+        AccountResponse data = authService.register(
+            registerRequest.getPhoneNumber(),
+            registerRequest.getPassword(),
+            registerRequest.getMerchant()
+        );
         log.info("注册请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
     }
@@ -63,6 +65,7 @@ public class AuthController {
     }
 
     // TODO 转移到管理员模块
+
     /**
      * 审核接口
      *
@@ -72,9 +75,11 @@ public class AuthController {
     @PostMapping("/review")
     public BaseResponse<Merchant> review(@Valid @RequestBody ReviewRequest reviewRequest) {
         log.info("接收审核请求: {}", reviewRequest);
-        Merchant data = merchantService.reviewMerchant(reviewRequest.getMerchantPhoneNumber(),
-                                                       reviewRequest.getApproved(),
-                                                       reviewRequest.getRejectReason());
+        Merchant data = merchantService.reviewMerchant(
+            reviewRequest.getMerchantPhoneNumber(),
+            reviewRequest.getApproved(),
+            reviewRequest.getRejectReason()
+        );
         log.info("审核请求成功: {}", data);
         return ResponseUtil.success(data);
     }

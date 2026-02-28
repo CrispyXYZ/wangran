@@ -33,7 +33,7 @@ public class MerchantController {
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int pageSize
     ) {
-        IPage<Merchant> pageInfo = merchantService.getMerchants(page, pageSize);
+        IPage<Merchant> pageInfo = merchantService.getPage(page, pageSize);
         PageResponse<MerchantResponse> pageResponse =
             new PageResponse<>(modelMapperHelper.mapPage(pageInfo, MerchantResponse.class));
         return ResponseUtil.success(pageResponse);
@@ -43,7 +43,7 @@ public class MerchantController {
     public BaseResponse<MerchantResponse> getMerchant(@PathVariable int id) {
         Merchant merchant = merchantService.getById(id);
         if (merchant == null) {
-            throw new ResourceNotFoundException("找不到id为" + id + "的用户");
+            throw new ResourceNotFoundException("找不到id为" + id + "的商户");
         }
         MerchantResponse merchantResponse = modelMapper.map(merchant, MerchantResponse.class);
         return ResponseUtil.success(merchantResponse);
@@ -62,7 +62,7 @@ public class MerchantController {
         if (merchantService.removeById(id)) {
             return ResponseUtil.success(null);
         } else {
-            throw new ResourceNotFoundException("找不到id为" + id + "的用户");
+            throw new ResourceNotFoundException("找不到id为" + id + "的商户");
         }
     }
 

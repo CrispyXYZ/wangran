@@ -17,11 +17,13 @@ public class InterceptorConfig implements WebMvcConfigurer {
         // 拦截器配置
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/auth/login",
-                                     "/auth/register",
-                                     "/swagger-ui.html",
-                                     "/swagger-ui/**",
-                                     "/v3/api" + "-docs/**",
-                                     "/favicon.ico");
+                .excludePathPatterns(
+                    "/auth/login",
+                    "/auth/register",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/v3/api" + "-docs/**",
+                    "/favicon.ico"
+                );
     }
 }

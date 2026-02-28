@@ -16,7 +16,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -32,7 +36,7 @@ public class UserController {
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int pageSize
     ) {
-        IPage<User> pageInfo = userService.getUsers(page, pageSize);
+        IPage<User> pageInfo = userService.getPage(page, pageSize);
         PageResponse<UserResponse> pageResponse =
             new PageResponse<>(modelMapperHelper.mapPage(pageInfo, UserResponse.class));
         return ResponseUtil.success(pageResponse);
@@ -71,5 +75,10 @@ public class UserController {
     ) {
         UserResponse userResponse = modelMapper.map(userService.partialUpdate(id, request), UserResponse.class);
         return ResponseUtil.success(userResponse);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<List<UserResponse>> importUser(@RequestParam("file") MultipartFile file) {
+
     }
 }

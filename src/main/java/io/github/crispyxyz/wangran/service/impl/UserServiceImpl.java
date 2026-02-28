@@ -1,8 +1,6 @@
 package io.github.crispyxyz.wangran.service.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
@@ -19,21 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserServiceImpl extends BaseEntityService<UserMapper, User> implements UserService {
 
-    @Override
-    public IPage<User> getUsers(int page, int pageSize) {
-        Page<User> pageInfo = Page.of(page, pageSize);
-        return this.page(pageInfo);
-    }
-
     @Transactional
     @Override
     public User partialUpdate(int id, UpdateAccountRequest request) {
-        // 这里用 this 是为了格式化后对齐更好看
-        return this.updateBuilder(id)
-                   .setUnique(User::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
-                   .setUnique(User::getUsername, request.getUsername(), "该昵称已被占用")
-                   .setPassword(User::getPasswordSha256, request.getPassword())
-                   .execute();
+        return updateBuilder(id).setUnique(User::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
+                                .setUnique(User::getUsername, request.getUsername(), "该昵称已被占用")
+                                .setPassword(User::getPasswordSha256, request.getPassword())
+                                .execute();
     }
 
     @Override
@@ -58,7 +48,8 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
 
     @Override
     public User findByPhoneNumber(String phoneNumber) {
-        return lambdaQuery().eq(User::getPhoneNumber, phoneNumber).one();
+        return lambdaQuery().eq(User::getPhoneNumber, phoneNumber)
+                            .one();
     }
 
     @Override

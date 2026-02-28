@@ -23,7 +23,7 @@ mysql  Ver 8.0.45-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
 
 数据库相关：
 
-- 执行 `init_db.sql` 即可删除并重建数据库，**执行前先打开检查一下，删库警告！！！**
+- 执行 `init_db.sql` （由IDEA自动生成）即可删除并重建数据库，**执行前先打开检查一下，删库警告！！！**
 - 数据库连接url：`jdbc:mysql://localhost:3306/wangran_db`
 
 项目结构相关：

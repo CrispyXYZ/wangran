@@ -4,7 +4,10 @@ import io.github.crispyxyz.wangran.exception.*;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.LoginRequest;
-import io.github.crispyxyz.wangran.response.*;
+import io.github.crispyxyz.wangran.response.AccountResponse;
+import io.github.crispyxyz.wangran.response.LoginResponse;
+import io.github.crispyxyz.wangran.response.MerchantResponse;
+import io.github.crispyxyz.wangran.response.UserResponse;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.UserService;
@@ -117,8 +120,10 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("密码错误");
         }
         // 成功
-        return new LoginResponse(modelMapper.map(user, UserResponse.class),
-                                 SecurityUtil.createJwtToken(user.getUsername(), "user"));
+        return new LoginResponse(
+            modelMapper.map(user, UserResponse.class),
+                                 SecurityUtil.createJwtToken(user.getUsername(), "user")
+        );
     }
 
     private @NonNull LoginResponse handleMerchantLogin(Merchant merchant, String password) {
@@ -137,7 +142,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 成功
-        return new LoginResponse(modelMapper.map(merchant, MerchantResponse.class),
-                                 SecurityUtil.createJwtToken(merchant.getUsername(), "merchant"));
+        return new LoginResponse(
+            modelMapper.map(merchant, MerchantResponse.class),
+                                 SecurityUtil.createJwtToken(merchant.getUsername(), "merchant")
+        );
     }
 }

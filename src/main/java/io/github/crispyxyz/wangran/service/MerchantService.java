@@ -1,7 +1,5 @@
 package io.github.crispyxyz.wangran.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.IService;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 
@@ -10,9 +8,7 @@ import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
  * 针对表【merchant】的数据库操作Service
  *
  */
-public interface MerchantService extends IService<Merchant> {
-    IPage<Merchant> getMerchants(int page, int pageSize);
-
+public interface MerchantService extends EntityService<Merchant> {
     Merchant partialUpdate(int id, UpdateAccountRequest request);
 
     boolean existPhoneNumber(String phoneNumber);
