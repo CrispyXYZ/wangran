@@ -2,6 +2,7 @@ package io.github.crispyxyz.wangran.service;
 
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -24,4 +25,6 @@ public interface MerchantService extends EntityService<Merchant> {
     Merchant findByPhoneNumber(String phoneNumber);
 
     Merchant findByMerchantId(String merchantId);
+
+    void importMerchants(MultipartFile file);
 }

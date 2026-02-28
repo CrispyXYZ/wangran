@@ -17,7 +17,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/merchants")
@@ -27,6 +29,7 @@ public class MerchantController {
     private final ModelMapperHelper modelMapperHelper;
     private final ModelMapper modelMapper;
     private final AuthService authService;
+    // TODO 取代authService？
 
     @GetMapping
     public BaseResponse<PageResponse<MerchantResponse>> getMerchants(
@@ -75,5 +78,11 @@ public class MerchantController {
         MerchantResponse merchantResponse =
             modelMapper.map(merchantService.partialUpdate(id, request), MerchantResponse.class);
         return ResponseUtil.success(merchantResponse);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<Void> importMerchant(@RequestParam("file") MultipartFile file) {
+        merchantService.importMerchants(file);
+        return ResponseUtil.success(null);
     }
 }

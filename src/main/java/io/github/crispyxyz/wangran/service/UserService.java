@@ -2,6 +2,7 @@ package io.github.crispyxyz.wangran.service;
 
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -18,4 +19,6 @@ public interface UserService extends EntityService<User> {
     User create(String phoneNumber, byte[] passwordSha256);
 
     User findByPhoneNumber(String phoneNumber);
+
+    void importUsers(MultipartFile file);
 }

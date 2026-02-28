@@ -20,8 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
@@ -78,7 +76,8 @@ public class UserController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public BaseResponse<List<UserResponse>> importUser(@RequestParam("file") MultipartFile file) {
-
+    public BaseResponse<Void> importUser(@RequestParam("file") MultipartFile file) {
+        userService.importUsers(file);
+        return ResponseUtil.success(null);
     }
 }

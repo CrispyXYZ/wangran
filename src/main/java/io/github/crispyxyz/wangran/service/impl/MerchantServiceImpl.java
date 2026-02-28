@@ -1,14 +1,24 @@
 package io.github.crispyxyz.wangran.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import io.github.crispyxyz.wangran.component.MerchantExcelListener;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
+import io.github.crispyxyz.wangran.exception.SystemException;
 import io.github.crispyxyz.wangran.mapper.MerchantMapper;
 import io.github.crispyxyz.wangran.model.Merchant;
+import io.github.crispyxyz.wangran.model.excel.MerchantExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
+import lombok.RequiredArgsConstructor;
+import org.apache.fesod.sheet.FesodSheet;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 /**
  *
@@ -16,7 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
  *
  */
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merchant> implements MerchantService {
+
+    private final ModelMapper modelMapper;
 
     @Override
     public Merchant partialUpdate(int id, UpdateAccountRequest request) {
@@ -81,6 +94,18 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     public Merchant findByMerchantId(String merchantId) {
         return lambdaQuery().eq(Merchant::getMerchantId, merchantId)
                             .one();
+    }
+
+    @Override
+    public void importMerchants(MultipartFile file) {
+        try {
+            MerchantExcelListener listener = new MerchantExcelListener(modelMapper, this);
+            FesodSheet.read(file.getInputStream(), MerchantExcelData.class, listener)
+                      .sheet()
+                      .doRead();
+        } catch (IOException e) {
+            throw new SystemException(e.getMessage());
+        }
     }
 
     @Override

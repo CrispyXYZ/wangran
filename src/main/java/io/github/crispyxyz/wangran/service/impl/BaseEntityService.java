@@ -15,6 +15,7 @@ import io.github.crispyxyz.wangran.service.EntityService;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 
 import java.io.Serializable;
+// TODO 引入通用查重方法？
 
 /**
  * 实体业务逻辑的抽象基类。用于封装便捷方法从而降低代码重复率
