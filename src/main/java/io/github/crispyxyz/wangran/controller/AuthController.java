@@ -1,15 +1,13 @@
 package io.github.crispyxyz.wangran.controller;
 
-import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.request.LoginRequest;
 import io.github.crispyxyz.wangran.request.RegisterRequest;
-import io.github.crispyxyz.wangran.request.ReviewRequest;
 import io.github.crispyxyz.wangran.response.AccountResponse;
 import io.github.crispyxyz.wangran.response.BaseResponse;
 import io.github.crispyxyz.wangran.response.LoginResponse;
 import io.github.crispyxyz.wangran.service.AuthService;
-import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,15 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 认证相关接口控制器：处理用户注册、登录和审核等认证流程
+ * 权限说明：此接口将对所有访客开放
  */
 @RestController
 @RequestMapping("/auth")
 @Slf4j
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
+@SecurityRequirements
 public class AuthController {
 
     private final AuthService authService;
-    private final MerchantService merchantService;
 
     /**
      * 用户注册接口
@@ -62,25 +61,5 @@ public class AuthController {
         LoginResponse data = authService.login(loginRequest);
         log.info("登录请求成功: {}", data);
         return ResponseEntity.ok(ResponseUtil.success(data));
-    }
-
-    // TODO 转移到管理员模块
-
-    /**
-     * 审核接口
-     *
-     * @param reviewRequest 审核请求参数
-     * @return 审核结果
-     */
-    @PostMapping("/review")
-    public BaseResponse<Merchant> review(@Valid @RequestBody ReviewRequest reviewRequest) {
-        log.info("接收审核请求: {}", reviewRequest);
-        Merchant data = merchantService.reviewMerchant(
-            reviewRequest.getMerchantPhoneNumber(),
-            reviewRequest.getApproved(),
-            reviewRequest.getRejectReason()
-        );
-        log.info("审核请求成功: {}", data);
-        return ResponseUtil.success(data);
     }
 }

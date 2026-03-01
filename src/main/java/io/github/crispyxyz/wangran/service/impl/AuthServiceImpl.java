@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
         if ("AdminMaster".equals(identifier) && "AdminMaster".equals(password)) {
             log.debug("登录为管理员成功，identifier={}", identifier);
             // 成功
-            return new LoginResponse(null, SecurityUtil.createJwtToken("AdminMaster", "admin"));
+            return new LoginResponse(SecurityUtil.createJwtToken(0, "admin"), null);
         }
 
         // 判断商户 id 登录
@@ -121,8 +121,8 @@ public class AuthServiceImpl implements AuthService {
         }
         // 成功
         return new LoginResponse(
-            modelMapper.map(user, UserResponse.class),
-                                 SecurityUtil.createJwtToken(user.getUsername(), "user")
+            SecurityUtil.createJwtToken(user.getId(), "user"),
+                                 modelMapper.map(user, UserResponse.class)
         );
     }
 
@@ -143,8 +143,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 成功
         return new LoginResponse(
-            modelMapper.map(merchant, MerchantResponse.class),
-                                 SecurityUtil.createJwtToken(merchant.getUsername(), "merchant")
+            SecurityUtil.createJwtToken(merchant.getId(), "merchant"),
+            modelMapper.map(merchant, MerchantResponse.class)
         );
     }
 }

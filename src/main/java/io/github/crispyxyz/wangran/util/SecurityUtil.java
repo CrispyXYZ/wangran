@@ -70,18 +70,18 @@ public class SecurityUtil {
     }
 
     /**
-     * 创建 JWT token，包含昵称、角色、时间信息
+     * 创建 JWT token
      *
-     * @param username 昵称
-     * @param role     角色
+     * @param id id
+     * @param type     角色类型
      * @return JWT token 字符串
      */
-    public static String createJwtToken(String username, String role) {
+    public static String createJwtToken(Integer id, String type) {
         return JWT.create()
-                  .withSubject(username)
                   .withIssuedAt(new Date())
                   .withExpiresAt(new Date(System.currentTimeMillis() + 3600 * 1000))
-                  .withClaim("role", role)
+                  .withClaim("userId", id)
+                  .withClaim("type", type)
                   .sign(Algorithm.HMAC256(JWT_KEY));
     }
 

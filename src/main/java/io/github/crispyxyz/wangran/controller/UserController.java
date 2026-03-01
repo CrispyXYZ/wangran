@@ -9,6 +9,8 @@ import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.response.BaseResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.response.UserResponse;
+import io.github.crispyxyz.wangran.security.annotation.UserSelfOrAdmin;
+import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
@@ -29,6 +31,7 @@ public class UserController {
     private final ModelMapper modelMapper;
     private final AuthService authService;
 
+    @AdminOnly
     @GetMapping
     public BaseResponse<PageResponse<UserResponse>> getUsers(
         @RequestParam(defaultValue = "1") int page,
@@ -40,6 +43,7 @@ public class UserController {
         return ResponseUtil.success(pageResponse);
     }
 
+    @UserSelfOrAdmin
     @GetMapping("/{id}")
     public BaseResponse<UserResponse> getUser(@PathVariable int id) {
         User user = userService.getById(id);
@@ -50,6 +54,7 @@ public class UserController {
         return ResponseUtil.success(userResponse);
     }
 
+    @AdminOnly
     @PostMapping
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
         UserResponse userResponse =
@@ -57,6 +62,7 @@ public class UserController {
         return ResponseUtil.success(userResponse);
     }
 
+    @UserSelfOrAdmin
     @DeleteMapping("/{id}")
     public BaseResponse<Void> deleteUser(@PathVariable int id) {
         if (userService.removeById(id)) {
@@ -66,6 +72,7 @@ public class UserController {
         }
     }
 
+    @UserSelfOrAdmin
     @PatchMapping("/{id}")
     public BaseResponse<UserResponse> updateUser(
         @PathVariable int id,
@@ -75,6 +82,7 @@ public class UserController {
         return ResponseUtil.success(userResponse);
     }
 
+    @AdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<Void> importUser(@RequestParam("file") MultipartFile file) {
         userService.importUsers(file);

@@ -9,6 +9,7 @@ import io.github.crispyxyz.wangran.request.UpdateOrganizerRequest;
 import io.github.crispyxyz.wangran.response.BaseResponse;
 import io.github.crispyxyz.wangran.response.OrganizerResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
+import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -25,6 +26,7 @@ public class OrganizerController {
     private final ModelMapperHelper modelMapperHelper;
     private final ModelMapper modelMapper;
 
+    @AdminOnly
     @GetMapping
     public BaseResponse<PageResponse<OrganizerResponse>> getOrganizers(
         @RequestParam(defaultValue = "1") int page,
@@ -36,6 +38,7 @@ public class OrganizerController {
         return ResponseUtil.success(pageResponse);
     }
 
+    @AdminOnly
     @GetMapping("/{id}")
     public BaseResponse<OrganizerResponse> getOrganizer(@PathVariable int id) {
         Organizer organizer = organizerService.getById(id);
@@ -46,6 +49,7 @@ public class OrganizerController {
         return ResponseUtil.success(organizerResponse);
     }
 
+    @AdminOnly
     @PostMapping
     public BaseResponse<OrganizerResponse> createOrganizer(@Valid @RequestBody CreateOrganizerRequest request) {
         Organizer organizer =
@@ -53,6 +57,7 @@ public class OrganizerController {
         return ResponseUtil.success(modelMapper.map(organizer, OrganizerResponse.class));
     }
 
+    @AdminOnly
     @DeleteMapping("/{id}")
     public BaseResponse<Void> deleteOrganizer(@PathVariable int id) {
         if (organizerService.removeById(id)) {
@@ -62,6 +67,7 @@ public class OrganizerController {
         }
     }
 
+    @AdminOnly
     @PatchMapping("/{id}")
     public BaseResponse<OrganizerResponse> updateOrganizer(
         @PathVariable int id,
