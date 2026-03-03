@@ -6,20 +6,20 @@ USE wangran_db;
 
 create table merchant
 (
-    id              int auto_increment
+    id               int auto_increment
         primary key,
-    username        varchar(50)          null,
-    merchant_id     varchar(20)          null,
-    phone_number    varchar(20)          not null,
-    password_sha256 binary(32)           null,
-    approval_status tinyint    default 0 not null comment '0=审核中 1=审核通过 2=审核不通过',
-    reject_reason   varchar(50)          null,
-    deleted         tinyint(1) default 0 not null,
-    merchant_id_vc  varchar(20) as (if((`deleted` = 0), `merchant_id`, NULL)),
-    phone_number_vc varchar(20) as (if((`deleted` = 0), `phone_number`, NULL)),
-    username_vc     varchar(50) as (if((`deleted` = 0), `username`, NULL)),
-    constraint merchant_merchant_id_vc_uindex
-        unique (merchant_id_vc),
+    username         varchar(50)          null,
+    merchant_code    varchar(20)          null,
+    phone_number     varchar(20)          not null,
+    password_sha256  binary(32)           null,
+    approval_status  tinyint    default 0 not null comment '0=审核中 1=审核通过 2=审核不通过',
+    reject_reason    varchar(50)          null,
+    deleted          tinyint(1) default 0 not null,
+    phone_number_vc  varchar(20) as (if((`deleted` = 0), `phone_number`, NULL)),
+    username_vc      varchar(50) as (if((`deleted` = 0), `username`, NULL)),
+    merchant_code_vc varchar(20) as (if((`deleted` = 0), `merchant_code`, NULL)),
+    constraint merchant_merchant_code_vc_uindex
+        unique (merchant_code_vc),
     constraint merchant_phone_number_vc_uindex
         unique (phone_number_vc),
     constraint merchant_username_vc_uindex
@@ -54,21 +54,15 @@ create index merchant_id
 
 create table organizer
 (
-    id              int auto_increment
+    id           int auto_increment
         primary key,
-    name            varchar(40)          not null,
-    phone_number    varchar(20)          not null,
-    address         varchar(40)          not null,
-    deleted         tinyint(1) default 0 not null,
-    name_vc         varchar(40) as (if((`deleted` = 0), `name`, NULL)),
-    phone_number_vc varchar(20) as (if((`deleted` = 0), `phone_number`, NULL)),
-    address_vc      varchar(40) as (if((`deleted` = 0), `address`, NULL)),
-    constraint organizer_address_vc_uindex
-        unique (address_vc),
+    name         varchar(40)          not null,
+    phone_number varchar(20)          not null,
+    address      varchar(40)          not null,
+    deleted      tinyint(1) default 0 not null,
+    name_vc      varchar(40) as (if((`deleted` = 0), `name`, NULL)),
     constraint organizer_name_vc_uindex
-        unique (name_vc),
-    constraint organizer_phone_number_vc_uindex
-        unique (phone_number_vc)
+        unique (name_vc)
 );
 
 create table organizer_event

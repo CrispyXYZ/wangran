@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
         if (identifier.startsWith("mid_")) {
             log.debug("商户id登录，identifier={}", identifier);
             // 通过id获取数据库中的对应商户
-            Merchant merchant = merchantService.findByMerchantId(identifier);
+            Merchant merchant = merchantService.findByMerchantCode(identifier);
 
             if (merchant != null) {
                 return handleMerchantLogin(merchant, password);
@@ -144,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
         // 成功
         return new LoginResponse(
             SecurityUtil.createJwtToken(merchant.getId(), "merchant"),
-            modelMapper.map(merchant, MerchantResponse.class)
+                                 modelMapper.map(merchant, MerchantResponse.class)
         );
     }
 }

@@ -72,8 +72,8 @@ public class SecurityUtil {
     /**
      * 创建 JWT token
      *
-     * @param id id
-     * @param type     角色类型
+     * @param id   id
+     * @param type 角色类型
      * @return JWT token 字符串
      */
     public static String createJwtToken(Integer id, String type) {

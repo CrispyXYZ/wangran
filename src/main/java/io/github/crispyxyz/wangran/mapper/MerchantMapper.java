@@ -1,6 +1,6 @@
 package io.github.crispyxyz.wangran.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.yulichang.base.MPJBaseMapper;
 import io.github.crispyxyz.wangran.model.Merchant;
 
 /**
@@ -9,7 +9,7 @@ import io.github.crispyxyz.wangran.model.Merchant;
  *
  *
  */
-public interface MerchantMapper extends BaseMapper<Merchant> {
+public interface MerchantMapper extends MPJBaseMapper<Merchant> {
 
 }
 

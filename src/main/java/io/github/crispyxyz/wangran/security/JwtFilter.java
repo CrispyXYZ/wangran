@@ -28,9 +28,9 @@ import java.util.Map;
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final ObjectMapper objectMapper;
     private static final Map<String, String> TYPE_ROLE_MAP =
         Map.of("user", "ROLE_USER", "merchant", "ROLE_MERCHANT", "admin", "ROLE_ADMIN");
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
@@ -46,11 +46,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             DecodedJWT jwt = SecurityUtil.verifyJwtToken(token);
-            Integer userId = jwt.getClaim("userId").asInt();
-            String type = jwt.getClaim("type").asString();
+            Integer userId = jwt.getClaim("userId")
+                                .asInt();
+            String type = jwt.getClaim("type")
+                             .asString();
             String role = TYPE_ROLE_MAP.get(type);
 
-            if (role == null) {
+            if (role == null || userId == null) {
                 SecurityContextHolder.clearContext();
                 sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "认证失败");
                 return;
@@ -58,9 +60,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
             List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
             AppPrincipal principal = new AppPrincipal(type, userId);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+            UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext()
+                                 .setAuthentication(authentication);
         } catch (Exception e) {
             log.warn("认证失败：", e);
             SecurityContextHolder.clearContext();

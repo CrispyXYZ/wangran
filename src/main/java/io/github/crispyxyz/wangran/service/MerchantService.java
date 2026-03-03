@@ -24,7 +24,7 @@ public interface MerchantService extends EntityService<Merchant> {
 
     Merchant findByPhoneNumber(String phoneNumber);
 
-    Merchant findByMerchantId(String merchantId);
+    Merchant findByMerchantCode(String merchantCode);
 
     void importMerchants(MultipartFile file);
 }

@@ -10,6 +10,7 @@ import io.github.crispyxyz.wangran.response.BaseResponse;
 import io.github.crispyxyz.wangran.response.OrganizerResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
+import io.github.crispyxyz.wangran.security.annotation.MerchantOrAdmin;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class OrganizerController {
     private final ModelMapperHelper modelMapperHelper;
     private final ModelMapper modelMapper;
 
-    @AdminOnly
+    @MerchantOrAdmin
     @GetMapping
     public BaseResponse<PageResponse<OrganizerResponse>> getOrganizers(
         @RequestParam(defaultValue = "1") int page,
@@ -38,7 +39,7 @@ public class OrganizerController {
         return ResponseUtil.success(pageResponse);
     }
 
-    @AdminOnly
+    @MerchantOrAdmin
     @GetMapping("/{id}")
     public BaseResponse<OrganizerResponse> getOrganizer(@PathVariable int id) {
         Organizer organizer = organizerService.getById(id);

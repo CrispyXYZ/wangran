@@ -13,6 +13,7 @@ import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.service.EntityService;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 // TODO 引入通用查重方法？
@@ -31,6 +32,7 @@ public abstract class BaseEntityService<M extends BaseMapper<T>, T> extends Serv
     /**
      * 通用分页查询（无查询条件）
      */
+    @Transactional(readOnly = true)
     @Override
     public IPage<T> getPage(int page, int pageSize) {
         return page(Page.of(page, pageSize));
@@ -39,6 +41,7 @@ public abstract class BaseEntityService<M extends BaseMapper<T>, T> extends Serv
     /**
      * 支持条件构造器的分页查询（可被子类复用或直接调用）
      */
+    @Transactional(readOnly = true)
     @Override
     public IPage<T> getPage(int page, int pageSize, Wrapper<T> queryWrapper) {
         return page(Page.of(page, pageSize), queryWrapper);

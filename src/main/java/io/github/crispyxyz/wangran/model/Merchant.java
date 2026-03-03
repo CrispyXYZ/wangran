@@ -1,9 +1,13 @@
 package io.github.crispyxyz.wangran.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -29,7 +33,7 @@ public class Merchant {
     /**
      *
      */
-    private String merchantId;
+    private String merchantCode;
 
     /**
      *
@@ -55,4 +59,7 @@ public class Merchant {
      *
      */
     private byte[] passwordSha256;
+
+    @TableField(exist = false)
+    private List<Event> events = new ArrayList<>();
 }

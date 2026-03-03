@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -83,8 +84,8 @@ public class Event {
     private Integer deleted;
 
     @TableField(exist = false)
-    private List<Organizer> organizers;
+    private List<Organizer> organizers = new ArrayList<>();
 
     @TableField(exist = false)
-    private List<UserEvent> userEvents;
+    private List<UserEvent> userEvents = new ArrayList<>();
 }

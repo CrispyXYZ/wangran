@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasRole('ADMIN') or (#id == authentication.principal.id and 'merchant' == authentication.principal.type)")
+@PreAuthorize(
+    "hasRole('ADMIN') or (#id == authentication.principal.id and 'merchant' == authentication.principal" + ".type)")
 public @interface MerchantSelfOrAdmin {
 }

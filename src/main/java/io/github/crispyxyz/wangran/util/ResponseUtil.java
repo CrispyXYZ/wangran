@@ -20,7 +20,7 @@ public class ResponseUtil {
      * @param exception 业务异常
      * @return 包含异常信息的响应对象
      */
-    public static BaseResponse<?> error(BusinessException exception) {
+    public static BaseResponse<Void> error(BusinessException exception) {
         return error(exception.getMessage());
     }
 
@@ -30,7 +30,7 @@ public class ResponseUtil {
      * @param message 错误消息
      * @return 包含错误消息的响应对象
      */
-    public static BaseResponse<?> error(String message) {
+    public static BaseResponse<Void> error(String message) {
         return new BaseResponse<>(false, message, null);
     }
 }

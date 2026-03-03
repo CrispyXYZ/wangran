@@ -1,6 +1,7 @@
 package io.github.crispyxyz.wangran.util;
 
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GenerationUtil {
     /**
@@ -16,12 +17,17 @@ public class GenerationUtil {
     }
 
     /**
-     * 生成唯一商户id，此方法基于当前时间
+     * 生成唯一序列
      *
-     * @return mid_与当前时间的拼接
+     * @param prefix 前缀
+     * @return 前缀、当前时间、随机数的拼接
      */
-    public static String generateUniqueMerchantId() {
-        return "mid_" + System.currentTimeMillis();
+    public static String generateUniqueSequence(String prefix) {
+        long timestamp = System.currentTimeMillis();
+        int random = ThreadLocalRandom.current()
+                                      .nextInt(1000);
+        String randomStr = "%03d".formatted(random);
+        return prefix + timestamp + randomStr;
     }
 
 }

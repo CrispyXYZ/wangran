@@ -39,16 +39,19 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
                                 .execute();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public boolean existPhoneNumber(String phoneNumber) {
         return isFieldConflict(User::getPhoneNumber, phoneNumber, null);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public boolean existUsername(String username) {
         return isFieldConflict(User::getUsername, username, null);
     }
 
+    @Transactional
     @Override
     public User create(String phoneNumber, byte[] passwordSha256) {
         User user = new User();
@@ -59,12 +62,14 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
         return user;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public User findByPhoneNumber(String phoneNumber) {
         return lambdaQuery().eq(User::getPhoneNumber, phoneNumber)
                             .one();
     }
 
+    @Transactional
     @Override
     public void importUsers(MultipartFile file) {
         try {

@@ -1,6 +1,6 @@
 package io.github.crispyxyz.wangran.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.yulichang.base.MPJBaseMapper;
 import io.github.crispyxyz.wangran.model.UserEvent;
 
 /**
@@ -9,7 +9,7 @@ import io.github.crispyxyz.wangran.model.UserEvent;
  *
  *
  */
-public interface UserEventMapper extends BaseMapper<UserEvent> {
+public interface UserEventMapper extends MPJBaseMapper<UserEvent> {
 
 }
 

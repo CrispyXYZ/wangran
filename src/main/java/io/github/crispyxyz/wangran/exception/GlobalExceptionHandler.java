@@ -22,42 +22,42 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(SystemException.class)
-    public ResponseEntity<BaseResponse<?>> handleSystemException(SystemException e) {
+    public ResponseEntity<BaseResponse<Void>> handleSystemException(SystemException e) {
         log.error("系统异常：", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                              .body(ResponseUtil.error(e));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<BaseResponse<?>> handleResourceNotFoundException(ResourceNotFoundException e) {
+    public ResponseEntity<BaseResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException e) {
         log.warn("资源未找到： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                              .body(ResponseUtil.error(e));
     }
 
     @ExceptionHandler(ResourceConflictException.class)
-    public ResponseEntity<BaseResponse<?>> handleResourceConflictException(ResourceConflictException e) {
+    public ResponseEntity<BaseResponse<Void>> handleResourceConflictException(ResourceConflictException e) {
         log.warn("资源冲突： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                              .body(ResponseUtil.error(e));
     }
 
     @ExceptionHandler(AuthException.class)
-    public ResponseEntity<BaseResponse<?>> handleAuthException(AuthException e) {
+    public ResponseEntity<BaseResponse<Void>> handleAuthException(AuthException e) {
         log.warn("认证异常： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                              .body(ResponseUtil.error(e));
     }
 
     @ExceptionHandler(MerchantApprovalException.class)
-    public ResponseEntity<BaseResponse<?>> handleMerchantApprovalException(MerchantApprovalException e) {
+    public ResponseEntity<BaseResponse<Void>> handleMerchantApprovalException(MerchantApprovalException e) {
         log.warn("商户审核异常： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                              .body(ResponseUtil.error(e));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<BaseResponse<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<BaseResponse<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         // 拼接所有校验失败字段的错误信息
         String msg = "请求参数验证失败：" + e.getBindingResult()
                                             .getAllErrors()
@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<BaseResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+    public ResponseEntity<BaseResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         String msg = "请求参数错误：" + e.getMessage();
         log.warn(msg);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -85,7 +85,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<BaseResponse<?>> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
+    public ResponseEntity<BaseResponse<Void>> handleHttpMediaTypeNotSupportedException(
+        HttpMediaTypeNotSupportedException e
+    ) {
         String msg = "不支持的Content-Type类型，请检查Content-Type是否为下列之一： " + e.getSupportedMediaTypes();
         log.warn(msg);
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
@@ -93,9 +95,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<BaseResponse<?>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+    public ResponseEntity<BaseResponse<Void>> handleMethodArgumentTypeMismatchException(
+        MethodArgumentTypeMismatchException e
+    ) {
         log.warn("匹配异常： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                             .body(ResponseUtil.error(e.getMessage()));
+    }
+
+    @ExceptionHandler(EventAlreadyOnShelfException.class)
+    public ResponseEntity<BaseResponse<Void>> handleEventAlreadyOnShelfException(EventAlreadyOnShelfException e) {
+        log.warn("票务已上架： {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                              .body(ResponseUtil.error(e.getMessage()));
     }
 }

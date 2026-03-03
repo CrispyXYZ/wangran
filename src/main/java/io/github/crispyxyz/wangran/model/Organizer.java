@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,5 +42,5 @@ public class Organizer {
     private Integer deleted;
 
     @TableField(exist = false)
-    private List<Event> events;
+    private List<Event> events = new ArrayList<>();
 }

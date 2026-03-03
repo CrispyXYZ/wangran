@@ -7,6 +7,7 @@ import io.github.crispyxyz.wangran.model.Organizer;
 import io.github.crispyxyz.wangran.request.UpdateOrganizerRequest;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -21,6 +22,7 @@ public class OrganizerServiceImpl extends BaseEntityService<OrganizerMapper, Org
         return Organizer::getId;
     }
 
+    @Transactional
     @Override
     public Organizer create(String name, String phone, String address) {
         if (isFieldConflict(Organizer::getName, name, null)) {
@@ -34,6 +36,7 @@ public class OrganizerServiceImpl extends BaseEntityService<OrganizerMapper, Org
         return organizer;
     }
 
+    @Transactional
     @Override
     public Organizer partialUpdate(int id, UpdateOrganizerRequest request) {
         return updateBuilder(id).set(Organizer::getName, request.getName())

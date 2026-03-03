@@ -10,9 +10,9 @@ public class ReviewResponse {
     private boolean approved;
 
     /**
-     * 审核通过时生成的商户ID
+     * 审核通过时生成的商户编号
      */
-    private String merchantId;
+    private String merchantCode;
 
     /**
      * 审核通过时生成的用户名

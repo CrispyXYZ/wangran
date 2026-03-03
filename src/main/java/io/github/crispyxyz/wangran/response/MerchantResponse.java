@@ -6,7 +6,7 @@ import lombok.Data;
 public class MerchantResponse implements AccountResponse {
     private int id;
     private String username;
-    private String merchantId;
+    private String merchantCode;
     private String phoneNumber;
     private String approvalStatus;
     private String rejectReason;

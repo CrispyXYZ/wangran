@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class AppPrincipal {
     private String type;
-    private Integer id;
+    private int id;
 }

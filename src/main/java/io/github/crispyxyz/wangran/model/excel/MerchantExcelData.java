@@ -15,5 +15,5 @@ public class MerchantExcelData {
     private String password;
 
     @ExcelProperty({"商户编号", "商户ID"})
-    private String merchantId;
+    private String merchantCode;
 }

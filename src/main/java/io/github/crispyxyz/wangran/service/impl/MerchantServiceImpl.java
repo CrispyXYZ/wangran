@@ -31,6 +31,7 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
 
     private final ModelMapper modelMapper;
 
+    @Transactional
     @Override
     public Merchant partialUpdate(int id, UpdateAccountRequest request) {
         return updateBuilder(id).setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
@@ -40,11 +41,13 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existPhoneNumber(String phoneNumber) {
         return isFieldConflict(Merchant::getPhoneNumber, phoneNumber, null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existUsername(String username) {
         return isFieldConflict(Merchant::getUsername, username, null);
     }
@@ -84,18 +87,21 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         return create(phoneNumber, passwordSha256, true);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Merchant findByPhoneNumber(String phoneNumber) {
         return lambdaQuery().eq(Merchant::getPhoneNumber, phoneNumber)
                             .one();
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Merchant findByMerchantId(String merchantId) {
-        return lambdaQuery().eq(Merchant::getMerchantId, merchantId)
+    public Merchant findByMerchantCode(String merchantCode) {
+        return lambdaQuery().eq(Merchant::getMerchantCode, merchantCode)
                             .one();
     }
 
+    @Transactional
     @Override
     public void importMerchants(MultipartFile file) {
         try {
@@ -119,7 +125,7 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         merchant.setPasswordSha256(passwordSha256);
 
         if (autoApprove) {
-            merchant.setMerchantId(GenerationUtil.generateUniqueMerchantId());
+            merchant.setMerchantCode(GenerationUtil.generateUniqueSequence("mid_"));
             merchant.setUsername(GenerationUtil.generateUniqueUsername("merchant_"));
             merchant.setApprovalStatus(Merchant.STATUS_APPROVED);
             merchant.setRejectReason("");
@@ -145,9 +151,9 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         // TODO log.debug("审核通过，merchantPhoneNumber={}", phoneNumber);
 
         // 生成商户id
-        if (merchant.getMerchantId() == null) {
-            String id = GenerationUtil.generateUniqueMerchantId();
-            merchant.setMerchantId(id);
+        if (merchant.getMerchantCode() == null) {
+            String id = GenerationUtil.generateUniqueSequence("mid_");
+            merchant.setMerchantCode(id);
         }
 
         // 生成昵称
