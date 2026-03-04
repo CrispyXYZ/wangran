@@ -103,9 +103,9 @@ public class GlobalExceptionHandler {
                              .body(ResponseUtil.error(e.getMessage()));
     }
 
-    @ExceptionHandler(EventAlreadyOnShelfException.class)
-    public ResponseEntity<BaseResponse<Void>> handleEventAlreadyOnShelfException(EventAlreadyOnShelfException e) {
-        log.warn("票务已上架： {}", e.getMessage());
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<BaseResponse<Void>> handleBusinessException(BusinessException e) {
+        log.warn("业务异常： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                              .body(ResponseUtil.error(e.getMessage()));
     }

@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-public class EventResponse {
+public class OrderEventResponse {
     private int id;
     private String eventCode;
     private String eventName;
@@ -15,8 +15,6 @@ public class EventResponse {
     private Instant eventTime;
     private String city;
     private BigDecimal price;
-    private int stock;
-    private boolean onShelf;
     private Instant saleStartTime;
     private Instant saleEndTime;
     private int merchantId;

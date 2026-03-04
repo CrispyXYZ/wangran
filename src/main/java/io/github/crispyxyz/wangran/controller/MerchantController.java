@@ -97,10 +97,9 @@ public class MerchantController {
         return ResponseUtil.success(null);
     }
 
-    // TODO 转移到管理员模块
-
     /**
      * 审核接口
+     * TODO 拒绝时应检验检验RejectReason不为null
      *
      * @param reviewRequest 审核请求参数
      * @return 审核结果

@@ -11,6 +11,14 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 50MB
+  mvc:
+    format:
+      date: iso
+      date-time: iso
+      time: iso
+  jackson:
+    date-format: com.fasterxml.jackson.databind.util.ISO8601DateFormat
+
 
 logging:
   level:

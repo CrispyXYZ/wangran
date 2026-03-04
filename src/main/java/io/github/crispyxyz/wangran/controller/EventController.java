@@ -14,6 +14,7 @@ import io.github.crispyxyz.wangran.security.annotation.MerchantOnly;
 import io.github.crispyxyz.wangran.security.annotation.MerchantOrAdmin;
 import io.github.crispyxyz.wangran.service.EventService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
 
 @Slf4j
 @RestController
@@ -31,7 +34,7 @@ public class EventController {
     private final ModelMapper modelMapper;
     private final ModelMapperHelper modelMapperHelper;
 
-    // TODO 检验 Organizer 是否存在
+    // TODO 检验 Organizer 是否存在，不然会报 java.sql.SQLIntegrityConstraintViolationException: fk
     @MerchantOnly
     @PostMapping
     public BaseResponse<EventResponse> createEvent(
@@ -87,6 +90,22 @@ public class EventController {
         } else {
             throw new ResourceNotFoundException("找不到id为" + id + "的票务，权限不足或票务不存在");
         }
+    }
+
+    @SecurityRequirements
+    @GetMapping("/public")
+    public BaseResponse<PageResponse<EventResponse>> getPublicEvents(
+        @RequestParam(required = false) String eventType,
+        @RequestParam(required = false) String city,
+        @RequestParam(required = false) Instant startTime,
+        @RequestParam(required = false) Instant endTime,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        log.info("startTime={}, endTime={}", startTime, endTime);
+        PageResponse<EventResponse> pageResponse =
+            eventService.getPublicEvents(eventType, city, startTime, endTime, page, pageSize);
+        return ResponseUtil.success(pageResponse);
     }
 
 }

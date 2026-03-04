@@ -1,6 +1,5 @@
 package io.github.crispyxyz.wangran.util;
 
-import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.response.BaseResponse;
 
 public class ResponseUtil {
@@ -17,10 +16,10 @@ public class ResponseUtil {
     /**
      * 构建错误响应
      *
-     * @param exception 业务异常
+     * @param exception 异常
      * @return 包含异常信息的响应对象
      */
-    public static BaseResponse<Void> error(BusinessException exception) {
+    public static BaseResponse<Void> error(RuntimeException exception) {
         return error(exception.getMessage());
     }
 

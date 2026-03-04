@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -16,7 +16,7 @@ public class UpdateEventRequest {
     private String eventType;
 
     @Future
-    private Date eventTime;
+    private Instant eventTime;
 
     @Size(max = 10)
     private String city;
@@ -30,10 +30,10 @@ public class UpdateEventRequest {
     private Boolean onShelf;
 
     @Future
-    private Date saleStartTime;
+    private Instant saleStartTime;
 
     @Future
-    private Date saleEndTime;
+    private Instant saleEndTime;
 
     @Size(min = 1)
     private List<@NotNull Integer> organizers;

@@ -1,11 +1,12 @@
 package io.github.crispyxyz.wangran.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
  *
@@ -27,7 +28,7 @@ public class UserEvent {
     /**
      *
      */
-    private Date createTime;
+    private Instant createTime;
 
     /**
      *
@@ -48,4 +49,7 @@ public class UserEvent {
      *
      */
     private Integer deleted;
+
+    @TableField(exist = false)
+    private Event eventObject;
 }

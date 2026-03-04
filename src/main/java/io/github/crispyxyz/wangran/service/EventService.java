@@ -4,7 +4,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.crispyxyz.wangran.model.Event;
 import io.github.crispyxyz.wangran.request.CreateEventRequest;
 import io.github.crispyxyz.wangran.request.UpdateEventRequest;
+import io.github.crispyxyz.wangran.response.EventResponse;
+import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.AppPrincipal;
+
+import java.time.Instant;
 
 /**
  *
@@ -22,4 +26,13 @@ public interface EventService extends EntityService<Event> {
     Event partialUpdate(AppPrincipal principal, int id, UpdateEventRequest request);
 
     boolean removeById(int id, AppPrincipal principal);
+
+    PageResponse<EventResponse> getPublicEvents(
+        String eventType,
+        String city,
+        Instant startTime,
+        Instant endTime,
+        int page,
+        int pageSize
+    );
 }

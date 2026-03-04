@@ -7,13 +7,15 @@ import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
-import io.github.crispyxyz.wangran.exception.EventAlreadyOnShelfException;
+import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.model.Event;
 import io.github.crispyxyz.wangran.model.Organizer;
 import io.github.crispyxyz.wangran.model.OrganizerEvent;
 import io.github.crispyxyz.wangran.request.CreateEventRequest;
 import io.github.crispyxyz.wangran.request.UpdateEventRequest;
+import io.github.crispyxyz.wangran.response.EventResponse;
+import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.AppPrincipal;
 import io.github.crispyxyz.wangran.service.EventService;
 import io.github.crispyxyz.wangran.service.OrganizerEventService;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,7 +97,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         // 这里同时完成了验证id和权限
         Event event = getById(id, principal);
         if (event.getOnShelf() == 1) {
-            throw new EventAlreadyOnShelfException("票务已上架，无法修改");
+            throw new BusinessException("票务已上架，无法修改");
         }
 
         updateBuilder(id).set(Event::getEventName, request.getEventName())
@@ -121,7 +124,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         // 这里同时完成了验证id和权限
         Event event = getById(id, principal);
         if (event.getOnShelf() == 1) {
-            throw new EventAlreadyOnShelfException("票务已上架，无法修改");
+            throw new BusinessException("票务已上架，无法修改");
         }
 
         boolean result = this.removeById(id);
@@ -130,6 +133,34 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         }
         removeEventOrganizerRelation(id);
         return true;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public PageResponse<EventResponse> getPublicEvents(
+        String eventType,
+        String city,
+        Instant startTime,
+        Instant endTime,
+        int page,
+        int pageSize
+    ) {
+        MPJLambdaWrapper<Event> wrapper = getBaseWrapper().eq(Event::getOnShelf, 1)
+                                                          .eq(Event::getDeleted, 0);
+        if (eventType != null && !eventType.isEmpty()) {
+            wrapper.eq(Event::getEventType, eventType);
+        }
+        if (city != null && !city.isEmpty()) {
+            wrapper.eq(Event::getCity, city);
+        }
+        if (startTime != null) {
+            wrapper.ge(Event::getEventTime, startTime);
+        }
+        if (endTime != null) {
+            wrapper.le(Event::getEventTime, endTime);
+        }
+        IPage<Event> pageInfo = baseMapper.selectJoinPage(new Page<>(page, pageSize), Event.class, wrapper);
+        return new PageResponse<>(pageInfo.convert(e -> modelMapper.map(e, EventResponse.class)));
     }
 
     private void removeEventOrganizerRelation(int id) {

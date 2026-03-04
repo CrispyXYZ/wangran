@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -19,7 +19,7 @@ public class CreateEventRequest {
 
     @NotNull
     @Future
-    private Date eventTime;
+    private Instant eventTime;
 
     @NotBlank
     @Size(max = 10)
@@ -35,11 +35,11 @@ public class CreateEventRequest {
 
     @NotNull
     @Future
-    private Date saleStartTime;
+    private Instant saleStartTime;
 
     @NotNull
     @Future
-    private Date saleEndTime;
+    private Instant saleEndTime;
 
     @NotEmpty
     private List<@NotNull Integer> organizers;

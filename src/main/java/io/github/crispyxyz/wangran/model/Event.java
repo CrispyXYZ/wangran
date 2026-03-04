@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,7 +41,7 @@ public class Event {
     /**
      *
      */
-    private Date eventTime;
+    private Instant eventTime;
 
     /**
      *
@@ -66,12 +66,12 @@ public class Event {
     /**
      *
      */
-    private Date saleStartTime;
+    private Instant saleStartTime;
 
     /**
      *
      */
-    private Date saleEndTime;
+    private Instant saleEndTime;
 
     /**
      *
