@@ -12,6 +12,7 @@ import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 @RestController
 @RequestMapping("/orders")
+@Slf4j
 public class OrderController {
     private final OrderService orderService;
     private final ModelMapper modelMapper;
@@ -32,6 +34,7 @@ public class OrderController {
     ) {
         OrderResponse orderResponse =
             modelMapper.map(orderService.createOrder(principal.getId(), request.getEventId()), OrderResponse.class);
+        log.info("购票成功，订单号：{}，用户ID：{}，票务ID：{}", orderResponse.getId(), principal.getId(), request.getEventId());
         return ResponseUtil.success(orderResponse);
     }
 
@@ -41,8 +44,14 @@ public class OrderController {
         @AuthenticationPrincipal AppPrincipal principal,
         @PathVariable Integer orderId
     ) {
-        orderService.refundOrder(principal.getId(), orderId);
-        return ResponseUtil.success(null);
+        try {
+            orderService.refundOrder(principal.getId(), orderId);
+            log.info("退票成功，订单号：{}，用户ID：{}", orderId, principal.getId());
+            return ResponseUtil.success(null);
+        } catch (Exception e) {
+            log.warn("退票失败，订单号：{}，用户ID：{}，原因：{}", orderId, principal.getId(), e.getMessage());
+            throw e;
+        }
     }
 
     // TODO 需要修复 organizers 为空的问题

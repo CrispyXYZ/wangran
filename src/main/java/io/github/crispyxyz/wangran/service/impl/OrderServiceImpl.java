@@ -17,12 +17,14 @@ import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.service.UserEventService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class OrderServiceImpl implements OrderService {
@@ -40,31 +42,36 @@ public class OrderServiceImpl implements OrderService {
                     .eq(UserEvent::getEventId, eventId)
                     .eq(UserEvent::getRefunded, 0);
         if (userEventMapper.selectCount(existWrapper) > 0) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：重复购票", userId, eventId);
             throw new BusinessException("每人每场仅可购买一张票");
         }
 
         Event event = eventMapper.selectByIdForUpdate(eventId);
         if (event == null) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：票务不存在", userId, eventId);
             throw new BusinessException("票务不存在");
         }
 
         Instant now = Instant.now();
         if (event.getOnShelf() == null || event.getOnShelf() == 0) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：票务未上架", userId, eventId);
             throw new BusinessException("票务未上架");
         }
         if (event.getSaleStartTime() != null && now.isBefore(event.getSaleStartTime())) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：售卖尚未开始", userId, eventId);
             throw new BusinessException("售卖尚未开始");
         }
         if (event.getSaleEndTime() != null && now.isAfter(event.getSaleEndTime())) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：售卖已结束", userId, eventId);
             throw new BusinessException("售卖已结束");
         }
-
         if (event.getStock() == null || event.getStock() <= 0) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：库存不足", userId, eventId);
             throw new BusinessException("库存不足");
         }
-
         int rows = eventMapper.updateStockDecreaseById(eventId);
         if (rows == 0) {
+            log.warn("购票失败，用户ID：{}，票务ID：{}，原因：库存不足(并发)", userId, eventId);
             throw new BusinessException("库存不足");
         }
 
@@ -75,6 +82,7 @@ public class OrderServiceImpl implements OrderService {
         userEvent.setRefunded(0);
         userEvent.setTicketCode(GenerationUtil.generateUniqueSequence("O"));
         userEventService.save(userEvent);
+        log.info("购票成功，订单号：{}，用户ID：{}，票务ID：{}", userEvent.getId(), userId, eventId);
 
         return userEvent;
     }
@@ -84,28 +92,31 @@ public class OrderServiceImpl implements OrderService {
     public void refundOrder(Integer userId, Integer orderId) {
         UserEvent userEvent = userEventService.getById(orderId);
         if (userEvent == null) {
+            log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单不存在", userId, orderId);
             throw new BusinessException("订单不存在");
         }
-        if (!userEvent.getUserId()
-                      .equals(userId)) {
+        if (!userEvent.getUserId().equals(userId)) {
+            log.warn("退票失败，用户ID：{}，订单号：{}，原因：非本人订单", userId, orderId);
             throw new BusinessException("只能退自己的订单");
         }
         if (userEvent.getRefunded() != null && userEvent.getRefunded() == 1) {
+            log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单已退票", userId, orderId);
             throw new BusinessException("订单已退票");
         }
 
         Event event = eventMapper.selectByIdForUpdate(userEvent.getEventId());
         if (event == null) {
+            log.warn("退票失败，用户ID：{}，订单号：{}，原因：票务不存在", userId, orderId);
             throw new BusinessException("票务不存在");
         }
-
         int rows = eventMapper.updateStockIncreaseById(event.getId());
         if (rows == 0) {
+            log.warn("退票失败，用户ID：{}，订单号：{}，原因：库存回退失败", userId, orderId);
             throw new BusinessException("库存回退失败");
         }
-
         userEvent.setRefunded(1);
         userEventService.updateById(userEvent);
+        log.info("退票成功，订单号：{}，用户ID：{}，票务ID：{}", orderId, userId, userEvent.getEventId());
     }
 
     @Transactional(readOnly = true)

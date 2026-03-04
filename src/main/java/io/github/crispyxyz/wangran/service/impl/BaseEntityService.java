@@ -13,6 +13,7 @@ import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.service.EntityService;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
@@ -24,6 +25,7 @@ import java.io.Serializable;
  * @param <M> 实体类对应的 Mapper，应继承 BaseMapper
  * @param <T> 实体类
  */
+@Slf4j
 public abstract class BaseEntityService<M extends BaseMapper<T>, T> extends ServiceImpl<M, T>
     implements EntityService<T> {
 
@@ -137,7 +139,9 @@ public abstract class BaseEntityService<M extends BaseMapper<T>, T> extends Serv
          * @return 更新后的实体对象
          */
         public T execute() {
-            if (!update(wrapper)) {
+            boolean updated = update(wrapper);
+            log.debug("执行更新，id={}，更新结果={}，条件={}", id, updated, wrapper.getSqlSet());
+            if (!updated) {
                 throw new ResourceNotFoundException("实体不存在");
             }
             return getById(id);

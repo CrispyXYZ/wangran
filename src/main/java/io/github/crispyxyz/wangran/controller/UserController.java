@@ -16,6 +16,7 @@ import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
+@Slf4j
 public class UserController {
     private final UserService userService;
     private final ModelMapperHelper modelMapperHelper;
@@ -59,6 +61,7 @@ public class UserController {
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
         UserResponse userResponse =
             (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
+        log.info("创建用户成功，手机号：{}", request.getPhoneNumber());
         return ResponseUtil.success(userResponse);
     }
 
@@ -66,8 +69,10 @@ public class UserController {
     @DeleteMapping("/{id}")
     public BaseResponse<Void> deleteUser(@PathVariable int id) {
         if (userService.removeById(id)) {
+            log.info("删除用户成功，用户ID：{}", id);
             return ResponseUtil.success(null);
         } else {
+            log.warn("删除用户失败，用户ID：{}，原因：用户不存在", id);
             throw new ResourceNotFoundException("找不到id为" + id + "的用户");
         }
     }
@@ -79,13 +84,20 @@ public class UserController {
         @Valid @RequestBody UpdateAccountRequest request
     ) {
         UserResponse userResponse = modelMapper.map(userService.partialUpdate(id, request), UserResponse.class);
+        log.info("更新用户信息成功，用户ID：{}", id);
         return ResponseUtil.success(userResponse);
     }
 
     @AdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<Void> importUser(@RequestParam("file") MultipartFile file) {
-        userService.importUsers(file);
-        return ResponseUtil.success(null);
+        try {
+            userService.importUsers(file);
+            log.info("批量导入用户成功");
+            return ResponseUtil.success(null);
+        } catch (Exception e) {
+            log.error("批量导入用户失败", e);
+            throw e;
+        }
     }
 }

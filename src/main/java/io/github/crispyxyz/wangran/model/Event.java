@@ -85,7 +85,4 @@ public class Event {
 
     @TableField(exist = false)
     private List<Organizer> organizers = new ArrayList<>();
-
-    @TableField(exist = false)
-    private List<UserEvent> userEvents = new ArrayList<>();
 }

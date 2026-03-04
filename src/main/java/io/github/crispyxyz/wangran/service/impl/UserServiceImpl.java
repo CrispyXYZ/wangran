@@ -10,6 +10,7 @@ import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.fesod.sheet.FesodSheet;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import java.io.IOException;
  */
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
+@Slf4j
 public class UserServiceImpl extends BaseEntityService<UserMapper, User> implements UserService {
 
     private final ModelMapper modelMapper;
@@ -33,10 +35,12 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
     @Transactional
     @Override
     public User partialUpdate(int id, UpdateAccountRequest request) {
-        return updateBuilder(id).setUnique(User::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
+        User user = updateBuilder(id).setUnique(User::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
                                 .setUnique(User::getUsername, request.getUsername(), "该昵称已被占用")
                                 .setPassword(User::getPasswordSha256, request.getPassword())
                                 .execute();
+        log.info("用户信息更新，用户ID：{}", id);
+        return user;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +63,7 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
         user.setPasswordSha256(passwordSha256);
         user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
         save(user);
+        log.info("新建用户，用户ID：{}，手机号：{}", user.getId(), phoneNumber);
         return user;
     }
 
@@ -77,7 +82,9 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
             FesodSheet.read(file.getInputStream(), UserExcelData.class, listener)
                       .sheet()
                       .doRead();
+            log.info("批量导入用户成功");
         } catch (IOException e) {
+            log.error("批量导入用户失败", e);
             throw new SystemException(e.getMessage());
         }
     }

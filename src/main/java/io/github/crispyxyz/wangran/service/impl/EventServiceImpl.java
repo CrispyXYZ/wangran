@@ -22,6 +22,7 @@ import io.github.crispyxyz.wangran.service.OrganizerEventService;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ import java.util.List;
  *
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class EventServiceImpl extends BaseEntityService<EventMapper, Event> implements EventService {
 
@@ -68,6 +70,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
             organizers.add(organizerService.getById(organizer));
         }
         event.setOnShelf(0);
+        log.info("创建票务成功，票务ID：{}，商户ID：{}，名称：{}", event.getId(), merchantId, event.getEventName());
         return event;
     }
 
@@ -97,6 +100,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         // 这里同时完成了验证id和权限
         Event event = getById(id, principal);
         if (event.getOnShelf() == 1) {
+            log.warn("票务更新失败，已上架，票务ID：{}", id);
             throw new BusinessException("票务已上架，无法修改");
         }
 
@@ -115,6 +119,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
             updateEventOrganizers(id, request.getOrganizers());
         }
 
+        log.info("更新票务信息，票务ID：{}，新名称：{}", id, request.getEventName());
         return getById(id, principal);
     }
 
@@ -124,14 +129,17 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         // 这里同时完成了验证id和权限
         Event event = getById(id, principal);
         if (event.getOnShelf() == 1) {
+            log.warn("票务删除失败，已上架，票务ID：{}", id);
             throw new BusinessException("票务已上架，无法修改");
         }
 
         boolean result = this.removeById(id);
         if (!result) {
+            log.warn("票务删除失败，票务ID：{}，未找到记录", id);
             return false;
         }
         removeEventOrganizerRelation(id);
+        log.info("删除票务成功，票务ID：{}", id);
         return true;
     }
 

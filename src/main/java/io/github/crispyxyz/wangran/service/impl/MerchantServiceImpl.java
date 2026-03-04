@@ -11,6 +11,7 @@ import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.fesod.sheet.FesodSheet;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.io.IOException;
  * 针对表【merchant】的数据库操作Service实现
  *
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merchant> implements MerchantService {
@@ -34,10 +36,13 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     @Transactional
     @Override
     public Merchant partialUpdate(int id, UpdateAccountRequest request) {
-        return updateBuilder(id).setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
-                                .setUnique(Merchant::getUsername, request.getUsername(), "该昵称已被占用")
-                                .setPassword(Merchant::getPasswordSha256, request.getPassword())
-                                .execute();
+        Merchant merchant =
+            updateBuilder(id).setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
+                             .setUnique(Merchant::getUsername, request.getUsername(), "该昵称已被占用")
+                             .setPassword(Merchant::getPasswordSha256, request.getPassword())
+                             .execute();
+        log.info("商户信息更新，商户ID：{}", id);
+        return merchant;
     }
 
     @Override
@@ -60,18 +65,20 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
                                          .one();
 
         if (merchant == null) {
+            log.warn("审核失败，商户不存在，手机号：{}", phoneNumber);
             throw new ResourceNotFoundException("商户不存在");
         }
 
         // 处理审核结果
         if (approved) {
             approve(merchant);
+            log.info("商户审核通过，手机号：{}", phoneNumber);
         } else {
             reject(merchant, rejectReason);
+            log.info("商户审核不通过，手机号：{}，原因：{}", phoneNumber, rejectReason);
         }
         updateById(merchant);
 
-        // TODO log.debug("审核处理成功，merchantPhoneNumber={}", phoneNumber);
         return merchant;
     }
 
@@ -109,7 +116,9 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
             FesodSheet.read(file.getInputStream(), MerchantExcelData.class, listener)
                       .sheet()
                       .doRead();
+            log.info("批量导入商户成功");
         } catch (IOException e) {
+            log.error("批量导入商户失败", e);
             throw new SystemException(e.getMessage());
         }
     }
@@ -139,17 +148,12 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
 
 
     private void reject(Merchant merchant, String rejectReason) {
-        // 审核不通过
-        // TODO log.debug("审核不通过，merchantPhoneNumber={}", phoneNumber);
-
         merchant.setApprovalStatus(Merchant.STATUS_REJECTED);
         merchant.setRejectReason(rejectReason);
+        log.debug("审核不通过，商户ID：{}，原因：{}", merchant.getId(), rejectReason);
     }
 
     private void approve(Merchant merchant) {
-        // 审核通过
-        // TODO log.debug("审核通过，merchantPhoneNumber={}", phoneNumber);
-
         // 生成商户id
         if (merchant.getMerchantCode() == null) {
             String id = GenerationUtil.generateUniqueSequence("mid_");
@@ -165,5 +169,6 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         // 其它属性
         merchant.setApprovalStatus(Merchant.STATUS_APPROVED);
         merchant.setRejectReason("");
+        log.debug("审核通过，商户ID：{}", merchant.getId());
     }
 }

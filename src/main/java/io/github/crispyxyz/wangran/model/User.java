@@ -40,7 +40,4 @@ public class User {
      *
      */
     private byte[] passwordSha256;
-
-    @TableField(exist = false)
-    private List<UserEvent> userEvents = new ArrayList<>();
 }
