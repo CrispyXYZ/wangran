@@ -44,9 +44,9 @@ public class OrganizerServiceImpl extends BaseEntityService<OrganizerMapper, Org
     @Override
     public Organizer partialUpdate(int id, UpdateOrganizerRequest request) {
         Organizer updated = updateBuilder(id).set(Organizer::getName, request.getName())
-                                .set(Organizer::getPhoneNumber, request.getPhoneNumber())
-                                .set(Organizer::getAddress, request.getAddress())
-                                .execute();
+                                             .set(Organizer::getPhoneNumber, request.getPhoneNumber())
+                                             .set(Organizer::getAddress, request.getAddress())
+                                             .execute();
         log.info("更新主办方信息，ID：{}，新名称：{}，新电话：{}", id, request.getName(), request.getPhoneNumber());
         return updated;
     }

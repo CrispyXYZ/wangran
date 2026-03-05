@@ -95,7 +95,8 @@ public class OrderServiceImpl implements OrderService {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单不存在", userId, orderId);
             throw new BusinessException("订单不存在");
         }
-        if (!userEvent.getUserId().equals(userId)) {
+        if (!userEvent.getUserId()
+                      .equals(userId)) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：非本人订单", userId, orderId);
             throw new BusinessException("只能退自己的订单");
         }

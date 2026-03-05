@@ -16,17 +16,23 @@ public class LoggingAspect {
     @Value("${monitor.time.threshold:50}")
     private long threshold;
 
-    @Pointcut("(within(@org.springframework.stereotype.Controller *) || within(@org.springframework.web.bind.annotation.RestController *)) && execution(public * *(..))")
-    public void controllerMethods() {}
+    @Pointcut("(within(@org.springframework.stereotype.Controller *) || within(@org.springframework.web.bind" +
+              ".annotation.RestController *)) && execution(public * *(..))")
+    public void controllerMethods() {
+    }
 
     @Pointcut("within(@org.springframework.stereotype.Service *) && execution(public * *(..))")
-    public void serviceMethods() {}
+    public void serviceMethods() {
+    }
 
     @Around("controllerMethods() || serviceMethods()")
     public Object monitorTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
-        String className = joinPoint.getTarget().getClass().getSimpleName();
-        String methodName = joinPoint.getSignature().getName();
+        String className = joinPoint.getTarget()
+                                    .getClass()
+                                    .getSimpleName();
+        String methodName = joinPoint.getSignature()
+                                     .getName();
         Object[] args = joinPoint.getArgs();
         try {
             return joinPoint.proceed();

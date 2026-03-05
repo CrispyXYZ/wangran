@@ -38,7 +38,7 @@ public class AuthController {
      * @return 注册成功的账户信息
      */
     @PostMapping("/register")
-    public ResponseEntity<BaseResponse<?>> register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<BaseResponse<AccountResponse>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         log.info("接收注册请求: {}", registerRequest);
         AccountResponse data = authService.register(
             registerRequest.getPhoneNumber(),
@@ -56,7 +56,7 @@ public class AuthController {
      * @return 登录成功的账户信息
      */
     @PostMapping("/login")
-    public ResponseEntity<BaseResponse<?>> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<BaseResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         log.info("接收登录请求: {}", loginRequest);
         LoginResponse data = authService.login(loginRequest);
         log.info("登录请求成功: {}", data);

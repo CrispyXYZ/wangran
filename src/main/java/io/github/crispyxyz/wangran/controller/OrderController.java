@@ -34,7 +34,12 @@ public class OrderController {
     ) {
         OrderResponse orderResponse =
             modelMapper.map(orderService.createOrder(principal.getId(), request.getEventId()), OrderResponse.class);
-        log.info("购票成功，订单号：{}，用户ID：{}，票务ID：{}", orderResponse.getId(), principal.getId(), request.getEventId());
+        log.info(
+            "购票成功，订单号：{}，用户ID：{}，票务ID：{}",
+            orderResponse.getId(),
+            principal.getId(),
+            request.getEventId()
+        );
         return ResponseUtil.success(orderResponse);
     }
 

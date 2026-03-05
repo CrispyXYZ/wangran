@@ -36,9 +36,9 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
     @Override
     public User partialUpdate(int id, UpdateAccountRequest request) {
         User user = updateBuilder(id).setUnique(User::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
-                                .setUnique(User::getUsername, request.getUsername(), "该昵称已被占用")
-                                .setPassword(User::getPasswordSha256, request.getPassword())
-                                .execute();
+                                     .setUnique(User::getUsername, request.getUsername(), "该昵称已被占用")
+                                     .setPassword(User::getPasswordSha256, request.getPassword())
+                                     .execute();
         log.info("用户信息更新，用户ID：{}", id);
         return user;
     }
