@@ -32,8 +32,10 @@ public class UserExcelListener implements ReadListener<UserExcelData> {
     public void invoke(UserExcelData data, AnalysisContext context) {
         Set<ConstraintViolation<UserExcelData>> violations = VALIDATOR.validate(data);
         if (!violations.isEmpty()) {
-            String msg = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining("; "));
-            throw new BusinessException("Excel 数据校验失败："+msg);
+            String msg = violations.stream()
+                                   .map(ConstraintViolation::getMessage)
+                                   .collect(Collectors.joining("; "));
+            throw new BusinessException("Excel 数据校验失败：" + msg);
         }
         User user = modelMapper.map(data, User.class);
         cache.add(user);

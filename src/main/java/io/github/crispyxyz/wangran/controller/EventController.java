@@ -53,8 +53,7 @@ public class EventController {
     @MerchantOrAdmin
     @GetMapping
     @Operation(
-        summary = "获取票务",
-        description = "返回分页的票务信息，仅商户（返回自己创建的票务）和管理员（返回所有票务）可访问此接口"
+        summary = "获取票务", description = "返回分页的票务信息，仅商户（返回自己创建的票务）和管理员（返回所有票务）可访问此接口"
     )
     public BaseResponse<PageResponse<EventResponse>> getEvents(
         @AuthenticationPrincipal AppPrincipal principal,

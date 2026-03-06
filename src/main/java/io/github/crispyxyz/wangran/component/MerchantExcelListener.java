@@ -33,8 +33,10 @@ public class MerchantExcelListener implements ReadListener<MerchantExcelData> {
     public void invoke(MerchantExcelData data, AnalysisContext context) {
         Set<ConstraintViolation<MerchantExcelData>> violations = VALIDATOR.validate(data);
         if (!violations.isEmpty()) {
-            String msg = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining("; "));
-            throw new BusinessException("Excel 数据校验失败："+msg);
+            String msg = violations.stream()
+                                   .map(ConstraintViolation::getMessage)
+                                   .collect(Collectors.joining("; "));
+            throw new BusinessException("Excel 数据校验失败：" + msg);
         }
         Merchant merchant = modelMapper.map(data, Merchant.class);
         cache.add(merchant);

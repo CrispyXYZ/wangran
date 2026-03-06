@@ -13,7 +13,6 @@ import io.github.crispyxyz.wangran.response.MerchantResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.security.annotation.MerchantSelfOrAdmin;
-import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
@@ -67,8 +66,7 @@ public class MerchantController {
     @AdminOnly
     @PostMapping
     @Operation(
-        summary = "创建商户",
-        description = "返回商户信息，默认密码wangran123，仅管理员可以访问，若需要公共注册请访问/auth内的公共接口"
+        summary = "创建商户", description = "返回商户信息，默认密码wangran123，仅管理员可以访问，若需要公共注册请访问/auth内的公共接口"
     )
     public BaseResponse<MerchantResponse> createMerchant(@Valid @RequestBody CreateAccountRequest request) {
         if (request.getPassword() == null) {

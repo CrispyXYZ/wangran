@@ -12,7 +12,6 @@ import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +30,7 @@ public class OrderController {
     private final OrderService orderService;
     private final ModelMapper modelMapper;
 
+    // TODO "eventObject": null
     @UserOnly
     @PostMapping
     @Operation(summary = "创建订单", description = "返回订单数据，仅用户可以访问此接口")
@@ -66,7 +66,6 @@ public class OrderController {
         }
     }
 
-    // TODO 需要修复 organizers 为空的问题
     @UserOnly
     @GetMapping
     @Operation(summary = "获取自己的订单", description = "返回分页的订单数据，仅用户可访问")
@@ -83,7 +82,7 @@ public class OrderController {
 
     @MerchantOnly
     @GetMapping("/merchant")
-    @Operation(summary = "获取商户的所有订单", description = "返回分页的订单数据，仅商户能访问此接口")
+    @Operation(summary = "商户获取自己的所有订单", description = "返回分页的订单数据，仅商户能访问此接口")
     public BaseResponse<PageResponse<OrderResponse>> getMerchantOrders(
         @AuthenticationPrincipal AppPrincipal principal,
         @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,

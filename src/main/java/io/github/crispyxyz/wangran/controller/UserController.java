@@ -65,8 +65,7 @@ public class UserController {
     @AdminOnly
     @PostMapping
     @Operation(
-        summary = "创建用户",
-        description = "返回用户数据，默认密码wangran123，仅管理员可访问，若要公共注册请访问/auth里的公共接口"
+        summary = "创建用户", description = "返回用户数据，默认密码wangran123，仅管理员可访问，若要公共注册请访问/auth里的公共接口"
     )
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
         if (request.getPassword() == null) {

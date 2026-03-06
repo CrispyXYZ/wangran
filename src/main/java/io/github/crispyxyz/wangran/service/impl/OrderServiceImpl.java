@@ -10,9 +10,7 @@ import io.github.crispyxyz.wangran.component.ModelMapperHelper;
 import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.mapper.UserEventMapper;
-import io.github.crispyxyz.wangran.model.Event;
-import io.github.crispyxyz.wangran.model.Merchant;
-import io.github.crispyxyz.wangran.model.UserEvent;
+import io.github.crispyxyz.wangran.model.*;
 import io.github.crispyxyz.wangran.response.OrderResponse;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.OrderService;
@@ -156,7 +154,14 @@ public class OrderServiceImpl implements OrderService {
     private MPJLambdaWrapper<UserEvent> getBaseWrapper() {
         return JoinWrappers.<UserEvent>lambda()
                            .selectAll(UserEvent.class)
-                           .selectAssociation(Event.class, UserEvent::getEventObject)
-                           .leftJoin(Event.class, Event::getId, UserEvent::getEventId);
+                           .selectAssociation(
+                               Event.class,
+                               UserEvent::getEventObject,
+                               ass -> ass.all()                           // 映射 Event 所有字段
+                                         .collection(Organizer.class, Event::getOrganizers) // 嵌套映射主办方集合
+                           )
+                           .leftJoin(Event.class, Event::getId, UserEvent::getEventId)
+                           .leftJoin(OrganizerEvent.class, OrganizerEvent::getEventId, Event::getId)
+                           .leftJoin(Organizer.class, Organizer::getId, OrganizerEvent::getOrganizerId);
     }
 }
