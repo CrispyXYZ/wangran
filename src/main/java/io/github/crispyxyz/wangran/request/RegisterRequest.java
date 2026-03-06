@@ -1,5 +1,6 @@
 package io.github.crispyxyz.wangran.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,6 +18,7 @@ public class RegisterRequest {
     @NotBlank
     @Size(max = 20)
     @Pattern(regexp = "^[0-9]+$", message = "手机号只能由数字构成")
+    @Schema(description = "手机号", example = "12345678888")
     private String phoneNumber;
 
     /**
@@ -24,11 +26,13 @@ public class RegisterRequest {
      */
     @NotBlank
     @Size(min = 6, max = 50)
+    @Schema(description = "密码（明文）", example = "P@SsW0rD")
     private String password;
 
     /**
      * 是否为商户，非空
      */
     @NotNull
+    @Schema(description = "是否是商户", example = "false")
     private Boolean merchant;
 }

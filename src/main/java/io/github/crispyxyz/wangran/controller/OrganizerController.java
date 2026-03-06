@@ -14,6 +14,7 @@ import io.github.crispyxyz.wangran.security.annotation.MerchantOrAdmin;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +35,8 @@ public class OrganizerController {
     @GetMapping
     @Operation(summary = "获取主办方", description = "返回分页的主办方数据，仅商户或管理员可访问")
     public BaseResponse<PageResponse<OrganizerResponse>> getOrganizers(
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
     ) {
         IPage<Organizer> pageInfo = organizerService.getPage(page, pageSize);
         PageResponse<OrganizerResponse> pageResponse =

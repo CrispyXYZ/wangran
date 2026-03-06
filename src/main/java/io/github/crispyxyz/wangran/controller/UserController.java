@@ -15,6 +15,7 @@ import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +41,8 @@ public class UserController {
     @GetMapping
     @Operation(summary = "获取用户", description = "返回分页的用户数据，仅管理员可访问")
     public BaseResponse<PageResponse<UserResponse>> getUsers(
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
     ) {
         IPage<User> pageInfo = userService.getPage(page, pageSize);
         PageResponse<UserResponse> pageResponse =
@@ -63,8 +64,14 @@ public class UserController {
 
     @AdminOnly
     @PostMapping
-    @Operation(summary = "创建用户", description = "返回用户数据，默认密码wangran123，仅管理员可访问，若要公共注册请访问/auth里的公共接口")
+    @Operation(
+        summary = "创建用户",
+        description = "返回用户数据，默认密码wangran123，仅管理员可访问，若要公共注册请访问/auth里的公共接口"
+    )
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
+        if (request.getPassword() == null) {
+            request.setPassword("wangran123");
+        }
         UserResponse userResponse =
             (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
         log.info("创建用户成功，手机号：{}", request.getPhoneNumber());

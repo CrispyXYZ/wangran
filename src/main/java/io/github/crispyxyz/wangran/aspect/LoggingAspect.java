@@ -16,8 +16,10 @@ public class LoggingAspect {
     @Value("${monitor.time.threshold:50}")
     private long threshold;
 
-    @Pointcut("(within(@org.springframework.stereotype.Controller *) || within(@org.springframework.web.bind" +
-              ".annotation.RestController *)) && execution(public * *(..))")
+    @Pointcut(
+        "(within(@org.springframework.stereotype.Controller *) || within(@org.springframework.web.bind" +
+        ".annotation.RestController *)) && execution(public * *(..))"
+    )
     public void controllerMethods() {
     }
 

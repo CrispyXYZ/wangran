@@ -11,6 +11,7 @@ import io.github.crispyxyz.wangran.security.annotation.UserOnly;
 import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,9 +71,9 @@ public class OrderController {
     @Operation(summary = "获取自己的订单", description = "返回分页的订单数据，仅用户可访问")
     public BaseResponse<PageResponse<OrderResponse>> getSelfOrders(
         @AuthenticationPrincipal AppPrincipal principal,
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize,
-        @RequestParam(required = false) Boolean refunded
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize,
+        @Parameter(description = "是否已退票", example = "false") @RequestParam(required = false) Boolean refunded
     ) {
         IPage<OrderResponse> pageInfo = orderService.getUserOrders(principal.getId(), page, pageSize, refunded);
         PageResponse<OrderResponse> pageResponse = new PageResponse<>(pageInfo);
@@ -84,8 +85,8 @@ public class OrderController {
     @Operation(summary = "获取商户的所有订单", description = "返回分页的订单数据，仅商户能访问此接口")
     public BaseResponse<PageResponse<OrderResponse>> getMerchantOrders(
         @AuthenticationPrincipal AppPrincipal principal,
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
     ) {
         IPage<OrderResponse> pageInfo = orderService.getMerchantOrders(principal.getId(), page, pageSize);
         PageResponse<OrderResponse> pageResponse = new PageResponse<>(pageInfo);

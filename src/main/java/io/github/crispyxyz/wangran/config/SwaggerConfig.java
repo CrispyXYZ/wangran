@@ -21,6 +21,7 @@ public class SwaggerConfig {
                                                     .scheme("bearer")
                                                     .bearerFormat("JWT")
                             ))
-                            .info(new Info().title("望冉购票系统 API").description("本系统 API 遵循统一返回格式与分页格式"));
+                            .info(new Info().title("望冉购票系统 API")
+                                            .description("本系统 API 遵循统一返回格式与分页格式"));
     }
 }

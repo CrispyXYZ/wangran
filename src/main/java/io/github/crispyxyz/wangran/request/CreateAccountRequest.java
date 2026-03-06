@@ -1,7 +1,7 @@
 package io.github.crispyxyz.wangran.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -14,12 +14,13 @@ public class CreateAccountRequest {
     @NotBlank
     @Size(max = 20)
     @Pattern(regexp = "^[0-9]+$", message = "手机号只能由数字构成")
+    @Schema(description = "手机号", example = "12345678888")
     private String phoneNumber;
 
     /**
-     * 密码，长度6-50，不能为null，可不填默认为wangran123
+     * 密码，长度6-50，可不填默认为wangran123
      */
     @Size(min = 6, max = 50)
-    @NotNull
-    private String password = "wangran123";
+    @Schema(description = "密码（明文），可不填默认为wangran123", example = "P@SsW0rD")
+    private String password;
 }

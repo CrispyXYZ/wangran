@@ -17,6 +17,7 @@ import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +44,8 @@ public class MerchantController {
     @GetMapping
     @Operation(summary = "获取商户信息", description = "返回分页的商户信息，仅管理员可访问此接口")
     public BaseResponse<PageResponse<MerchantResponse>> getMerchants(
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
     ) {
         IPage<Merchant> pageInfo = merchantService.getPage(page, pageSize);
         PageResponse<MerchantResponse> pageResponse =
@@ -66,8 +67,14 @@ public class MerchantController {
 
     @AdminOnly
     @PostMapping
-    @Operation(summary = "创建商户", description = "返回商户信息，默认密码wangran123，仅管理员可以访问，若需要公共注册请访问/auth内的公共接口")
+    @Operation(
+        summary = "创建商户",
+        description = "返回商户信息，默认密码wangran123，仅管理员可以访问，若需要公共注册请访问/auth内的公共接口"
+    )
     public BaseResponse<MerchantResponse> createMerchant(@Valid @RequestBody CreateAccountRequest request) {
+        if (request.getPassword() == null) {
+            request.setPassword("wangran123");
+        }
         Merchant merchant =
             merchantService.createByAdmin(request.getPhoneNumber(), SecurityUtil.computeSha256(request.getPassword()));
         MerchantResponse merchantResponse = modelMapper.map(merchant, MerchantResponse.class);

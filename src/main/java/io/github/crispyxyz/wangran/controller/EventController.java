@@ -15,6 +15,7 @@ import io.github.crispyxyz.wangran.security.annotation.MerchantOrAdmin;
 import io.github.crispyxyz.wangran.service.EventService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -52,11 +53,14 @@ public class EventController {
 
     @MerchantOrAdmin
     @GetMapping
-    @Operation(summary = "获取票务", description = "返回分页的票务信息，仅商户（返回自己创建的票务）和管理员（返回所有票务）可访问此接口")
+    @Operation(
+        summary = "获取票务",
+        description = "返回分页的票务信息，仅商户（返回自己创建的票务）和管理员（返回所有票务）可访问此接口"
+    )
     public BaseResponse<PageResponse<EventResponse>> getEvents(
         @AuthenticationPrincipal AppPrincipal principal,
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
     ) {
         IPage<Event> pageInfo = eventService.getPage(page, pageSize, principal);
         PageResponse<EventResponse> pageResponse =
@@ -104,12 +108,12 @@ public class EventController {
     @GetMapping("/public")
     @Operation(summary = "获取已上架的票务（公共接口，无权限控制）", description = "返回分页的票务，无访问权限控制")
     public BaseResponse<PageResponse<EventResponse>> getPublicEvents(
-        @RequestParam(required = false) String eventType,
-        @RequestParam(required = false) String city,
-        @RequestParam(required = false) Instant startTime,
-        @RequestParam(required = false) Instant endTime,
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "票务类型（演出/赛事）") @RequestParam(required = false) String eventType,
+        @Parameter(description = "举办城市") @RequestParam(required = false) String city,
+        @Parameter(description = "售票开始时间") @RequestParam(required = false) Instant startTime,
+        @Parameter(description = "售票结束时间") @RequestParam(required = false) Instant endTime,
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
     ) {
         log.info("startTime={}, endTime={}", startTime, endTime);
         PageResponse<EventResponse> pageResponse =
