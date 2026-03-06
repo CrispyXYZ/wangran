@@ -13,12 +13,15 @@ import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.security.annotation.MerchantOrAdmin;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "主办方接口")
 @RestController
 @RequestMapping("/organizers")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
@@ -29,6 +32,7 @@ public class OrganizerController {
 
     @MerchantOrAdmin
     @GetMapping
+    @Operation(summary = "获取主办方", description = "返回分页的主办方数据，仅商户或管理员可访问")
     public BaseResponse<PageResponse<OrganizerResponse>> getOrganizers(
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int pageSize
@@ -41,6 +45,7 @@ public class OrganizerController {
 
     @MerchantOrAdmin
     @GetMapping("/{id}")
+    @Operation(summary = "根据id获取主办方", description = "返回主办方数据，仅商户或管理员可以访问")
     public BaseResponse<OrganizerResponse> getOrganizer(@PathVariable int id) {
         Organizer organizer = organizerService.getById(id);
         if (organizer == null) {
@@ -52,6 +57,7 @@ public class OrganizerController {
 
     @AdminOnly
     @PostMapping
+    @Operation(summary = "创建主办方", description = "返回主办方数据，仅管理员可以访问")
     public BaseResponse<OrganizerResponse> createOrganizer(@Valid @RequestBody CreateOrganizerRequest request) {
         Organizer organizer =
             organizerService.create(request.getName(), request.getPhoneNumber(), request.getAddress());
@@ -60,6 +66,7 @@ public class OrganizerController {
 
     @AdminOnly
     @DeleteMapping("/{id}")
+    @Operation(summary = "删除主办方", description = "返回空数据，仅管理员可以访问")
     public BaseResponse<Void> deleteOrganizer(@PathVariable int id) {
         if (organizerService.removeById(id)) {
             return ResponseUtil.success(null);
@@ -70,6 +77,7 @@ public class OrganizerController {
 
     @AdminOnly
     @PatchMapping("/{id}")
+    @Operation(summary = "根据id更新主办方", description = "返回主办方数据，仅管理员可以访问")
     public BaseResponse<OrganizerResponse> updateOrganizer(
         @PathVariable int id,
         @Valid @RequestBody UpdateOrganizerRequest request

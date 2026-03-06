@@ -14,7 +14,9 @@ import io.github.crispyxyz.wangran.security.annotation.MerchantOnly;
 import io.github.crispyxyz.wangran.security.annotation.MerchantOrAdmin;
 import io.github.crispyxyz.wangran.service.EventService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
+@Tag(name = "票务接口")
 public class EventController {
     private final EventService eventService;
     private final ModelMapper modelMapper;
@@ -37,6 +40,7 @@ public class EventController {
     // TODO 检验 Organizer 是否存在，不然会报 java.sql.SQLIntegrityConstraintViolationException: fk
     @MerchantOnly
     @PostMapping
+    @Operation(summary = "创建票务", description = "返回票务信息，仅商户可访问该接口")
     public BaseResponse<EventResponse> createEvent(
         @AuthenticationPrincipal AppPrincipal principal,
         @RequestBody @Valid CreateEventRequest request
@@ -48,6 +52,7 @@ public class EventController {
 
     @MerchantOrAdmin
     @GetMapping
+    @Operation(summary = "获取票务", description = "返回分页的票务信息，仅商户（返回自己创建的票务）和管理员（返回所有票务）可访问此接口")
     public BaseResponse<PageResponse<EventResponse>> getEvents(
         @AuthenticationPrincipal AppPrincipal principal,
         @RequestParam(defaultValue = "1") int page,
@@ -61,6 +66,7 @@ public class EventController {
 
     @MerchantOrAdmin
     @GetMapping("/{id}")
+    @Operation(summary = "根据id获取票务", description = "返回票务信息，仅管理员或商户可以访问此接口")
     public BaseResponse<EventResponse> getEvent(@AuthenticationPrincipal AppPrincipal principal, @PathVariable int id) {
         Event event = eventService.getById(id, principal);
         if (event == null) {
@@ -72,6 +78,7 @@ public class EventController {
 
     @MerchantOnly
     @PatchMapping("/{id}")
+    @Operation(summary = "根据id更新票务", description = "返回票务信息，仅商户可以访问此接口")
     public BaseResponse<EventResponse> updateEvent(
         @AuthenticationPrincipal AppPrincipal principal,
         @PathVariable int id,
@@ -84,6 +91,7 @@ public class EventController {
 
     @MerchantOnly
     @DeleteMapping("/{id}")
+    @Operation(summary = "根据id删除票务", description = "返回空数据，仅商户可以访问此接口")
     public BaseResponse<Void> deleteEvent(@AuthenticationPrincipal AppPrincipal principal, @PathVariable int id) {
         if (eventService.removeById(id, principal)) {
             return ResponseUtil.success(null);
@@ -94,6 +102,7 @@ public class EventController {
 
     @SecurityRequirements
     @GetMapping("/public")
+    @Operation(summary = "获取已上架的票务（公共接口，无权限控制）", description = "返回分页的票务，无访问权限控制")
     public BaseResponse<PageResponse<EventResponse>> getPublicEvents(
         @RequestParam(required = false) String eventType,
         @RequestParam(required = false) String city,

@@ -10,6 +10,8 @@ import io.github.crispyxyz.wangran.security.annotation.MerchantOnly;
 import io.github.crispyxyz.wangran.security.annotation.UserOnly;
 import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +24,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/orders")
 @Slf4j
+@Tag(name = "订单接口")
 public class OrderController {
     private final OrderService orderService;
     private final ModelMapper modelMapper;
 
     @UserOnly
     @PostMapping
+    @Operation(summary = "创建订单", description = "返回订单数据，仅用户可以访问此接口")
     public BaseResponse<OrderResponse> createOrder(
         @AuthenticationPrincipal AppPrincipal principal,
         @RequestBody @Valid CreateOrderRequest request
@@ -45,6 +49,7 @@ public class OrderController {
 
     @UserOnly
     @PostMapping("/{orderId}/refund")
+    @Operation(summary = "退订", description = "返回空数据，仅用户可以访问此接口")
     public BaseResponse<Void> refundOrder(
         @AuthenticationPrincipal AppPrincipal principal,
         @PathVariable Integer orderId
@@ -62,6 +67,7 @@ public class OrderController {
     // TODO 需要修复 organizers 为空的问题
     @UserOnly
     @GetMapping
+    @Operation(summary = "获取自己的订单", description = "返回分页的订单数据，仅用户可访问")
     public BaseResponse<PageResponse<OrderResponse>> getSelfOrders(
         @AuthenticationPrincipal AppPrincipal principal,
         @RequestParam(defaultValue = "1") int page,
@@ -75,6 +81,7 @@ public class OrderController {
 
     @MerchantOnly
     @GetMapping("/merchant")
+    @Operation(summary = "获取商户的所有订单", description = "返回分页的订单数据，仅商户能访问此接口")
     public BaseResponse<PageResponse<OrderResponse>> getMerchantOrders(
         @AuthenticationPrincipal AppPrincipal principal,
         @RequestParam(defaultValue = "1") int page,

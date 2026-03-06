@@ -143,6 +143,9 @@ public class OrderServiceImpl implements OrderService {
         return modelMapperHelper.mapPage(pageInfo, OrderResponse.class);
     }
 
+    /**
+     * 获取基础查询wrapper，含订单所有字段，关联票务
+     */
     private MPJLambdaWrapper<UserEvent> getBaseWrapper() {
         return JoinWrappers.<UserEvent>lambda()
                            .selectAll(UserEvent.class)

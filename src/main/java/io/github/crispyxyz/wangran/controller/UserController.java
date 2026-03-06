@@ -14,6 +14,8 @@ import io.github.crispyxyz.wangran.security.annotation.UserSelfOrAdmin;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/users")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 @Slf4j
+@Tag(name = "普通用户接口")
 public class UserController {
     private final UserService userService;
     private final ModelMapperHelper modelMapperHelper;
@@ -35,6 +38,7 @@ public class UserController {
 
     @AdminOnly
     @GetMapping
+    @Operation(summary = "获取用户", description = "返回分页的用户数据，仅管理员可访问")
     public BaseResponse<PageResponse<UserResponse>> getUsers(
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int pageSize
@@ -47,6 +51,7 @@ public class UserController {
 
     @UserSelfOrAdmin
     @GetMapping("/{id}")
+    @Operation(summary = "根据id获取用户", description = "返回用户数据，仅管理员或用户本人可以访问")
     public BaseResponse<UserResponse> getUser(@PathVariable int id) {
         User user = userService.getById(id);
         if (user == null) {
@@ -58,6 +63,7 @@ public class UserController {
 
     @AdminOnly
     @PostMapping
+    @Operation(summary = "创建用户", description = "返回用户数据，默认密码wangran123，仅管理员可访问，若要公共注册请访问/auth里的公共接口")
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateAccountRequest request) {
         UserResponse userResponse =
             (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
@@ -67,6 +73,7 @@ public class UserController {
 
     @UserSelfOrAdmin
     @DeleteMapping("/{id}")
+    @Operation(summary = "根据id删除用户", description = "返回空数据，仅管理员或用户本人可访问")
     public BaseResponse<Void> deleteUser(@PathVariable int id) {
         if (userService.removeById(id)) {
             log.info("删除用户成功，用户ID：{}", id);
@@ -79,6 +86,7 @@ public class UserController {
 
     @UserSelfOrAdmin
     @PatchMapping("/{id}")
+    @Operation(summary = "根据id更新用户", description = "返回用户数据，仅管理员或用户本人可以访问")
     public BaseResponse<UserResponse> updateUser(
         @PathVariable int id,
         @Valid @RequestBody UpdateAccountRequest request
@@ -90,6 +98,7 @@ public class UserController {
 
     @AdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "批量导入用户数据（表格）", description = "返回空数据，仅管理员可以访问")
     public BaseResponse<Void> importUser(@RequestParam("file") MultipartFile file) {
         try {
             userService.importUsers(file);

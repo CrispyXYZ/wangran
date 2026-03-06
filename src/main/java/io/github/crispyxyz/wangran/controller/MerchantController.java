@@ -16,6 +16,8 @@ import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Tag(name = "商户接口")
 @Slf4j
 @RestController
 @RequestMapping("/merchants")
@@ -38,6 +41,7 @@ public class MerchantController {
 
     @AdminOnly
     @GetMapping
+    @Operation(summary = "获取商户信息", description = "返回分页的商户信息，仅管理员可访问此接口")
     public BaseResponse<PageResponse<MerchantResponse>> getMerchants(
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int pageSize
@@ -50,6 +54,7 @@ public class MerchantController {
 
     @MerchantSelfOrAdmin
     @GetMapping("/{id}")
+    @Operation(summary = "根据id获取商户", description = "返回商户信息，仅管理员或商户本人可以访问")
     public BaseResponse<MerchantResponse> getMerchant(@PathVariable int id) {
         Merchant merchant = merchantService.getById(id);
         if (merchant == null) {
@@ -61,6 +66,7 @@ public class MerchantController {
 
     @AdminOnly
     @PostMapping
+    @Operation(summary = "创建商户", description = "返回商户信息，默认密码wangran123，仅管理员可以访问，若需要公共注册请访问/auth内的公共接口")
     public BaseResponse<MerchantResponse> createMerchant(@Valid @RequestBody CreateAccountRequest request) {
         Merchant merchant =
             merchantService.createByAdmin(request.getPhoneNumber(), SecurityUtil.computeSha256(request.getPassword()));
@@ -70,6 +76,7 @@ public class MerchantController {
 
     @MerchantSelfOrAdmin
     @DeleteMapping("/{id}")
+    @Operation(summary = "根据id删除商户", description = "返回空数据，仅商户本人或管理员可以访问此接口")
     public BaseResponse<Void> deleteMerchant(@PathVariable int id) {
         if (merchantService.removeById(id)) {
             return ResponseUtil.success(null);
@@ -80,6 +87,7 @@ public class MerchantController {
 
     @MerchantSelfOrAdmin
     @PatchMapping("/{id}")
+    @Operation(summary = "根据id更新商户", description = "返回商户信息，仅商户本人或管理员可以访问")
     public BaseResponse<MerchantResponse> updateMerchant(
         @PathVariable int id,
         @Valid @RequestBody UpdateAccountRequest request
@@ -92,6 +100,7 @@ public class MerchantController {
 
     @AdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "批量导入商户（表格文件）", description = "返回空数据，仅管理员可以访问")
     public BaseResponse<Void> importMerchant(@RequestParam("file") MultipartFile file) {
         merchantService.importMerchants(file);
         return ResponseUtil.success(null);
@@ -102,11 +111,12 @@ public class MerchantController {
      * TODO 拒绝时应检验检验RejectReason不为null
      *
      * @param reviewRequest 审核请求参数
-     * @return 审核结果
+     * @return 商户信息
      */
     @AdminOnly
     @PostMapping("/review")
-    public BaseResponse<Merchant> review(@Valid @RequestBody ReviewRequest reviewRequest) {
+    @Operation(summary = "审核商户", description = "返回商户信息，仅管理员可访问")
+    public BaseResponse<MerchantResponse> review(@Valid @RequestBody ReviewRequest reviewRequest) {
         log.info("接收审核请求: {}", reviewRequest);
         Merchant data = merchantService.reviewMerchant(
             reviewRequest.getMerchantPhoneNumber(),
@@ -114,6 +124,6 @@ public class MerchantController {
             reviewRequest.getRejectReason()
         );
         log.info("审核请求成功: {}", data);
-        return ResponseUtil.success(data);
+        return ResponseUtil.success(modelMapper.map(data, MerchantResponse.class));
     }
 }

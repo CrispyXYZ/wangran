@@ -188,6 +188,9 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         }
     }
 
+    /**
+     * 获取基础wrapper，票务所有字段，关联主办方
+     */
     private MPJLambdaWrapper<Event> getBaseWrapper() {
         return JoinWrappers.<Event>lambda()
                            .selectAll(Event.class)
