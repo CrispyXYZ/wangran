@@ -11,8 +11,10 @@ import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.mapper.UserEventMapper;
 import io.github.crispyxyz.wangran.model.Event;
+import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.UserEvent;
 import io.github.crispyxyz.wangran.response.OrderResponse;
+import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.service.UserEventService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
@@ -33,6 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserEventMapper userEventMapper;
     private final UserEventService userEventService;
     private final ModelMapperHelper modelMapperHelper;
+    private final MerchantService merchantService;
 
     @Transactional
     @Override
@@ -50,6 +53,10 @@ public class OrderServiceImpl implements OrderService {
         if (event == null) {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：票务不存在", userId, eventId);
             throw new BusinessException("票务不存在");
+        }
+        Merchant merchant = merchantService.getById(event.getMerchantId());
+        if (merchant == null || merchant.getApprovalStatus() != Merchant.STATUS_APPROVED) {
+            throw new BusinessException("该票务所属商户未通过审核，暂时无法购买");
         }
 
         Instant now = Instant.now();

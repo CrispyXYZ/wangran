@@ -38,7 +38,6 @@ public class EventController {
     private final ModelMapper modelMapper;
     private final ModelMapperHelper modelMapperHelper;
 
-    // TODO 检验 Organizer 是否存在，不然会报 java.sql.SQLIntegrityConstraintViolationException: fk
     @MerchantOnly
     @PostMapping
     @Operation(summary = "创建票务", description = "返回票务信息，仅商户可访问该接口")

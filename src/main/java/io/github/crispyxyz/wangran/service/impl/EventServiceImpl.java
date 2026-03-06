@@ -8,8 +8,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import io.github.crispyxyz.wangran.exception.BusinessException;
+import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.model.Event;
+import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.Organizer;
 import io.github.crispyxyz.wangran.model.OrganizerEvent;
 import io.github.crispyxyz.wangran.request.CreateEventRequest;
@@ -18,9 +20,11 @@ import io.github.crispyxyz.wangran.response.EventResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.AppPrincipal;
 import io.github.crispyxyz.wangran.service.EventService;
+import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.OrganizerEventService;
 import io.github.crispyxyz.wangran.service.OrganizerService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -45,6 +49,15 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
     private final OrganizerService organizerService;
     private final OrganizerEventService organizerEventService;
     private final ModelMapper modelMapper;
+    private final MerchantService merchantService;
+
+    private static void validateTime(Instant start, Instant end) {
+        if (start != null && end != null) {
+            if (!start.isBefore(end)) {
+                throw new BusinessException("售票开始时间必须早于结束时间");
+            }
+        }
+    }
 
     @Override
     protected SFunction<Event, ?> getIdField() {
@@ -54,6 +67,15 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
     @Transactional
     @Override
     public Event create(int merchantId, CreateEventRequest request) {
+        validateTime(request.getSaleStartTime(), request.getSaleEndTime());
+
+        Merchant merchant = merchantService.getById(merchantId);
+        if (merchant == null || merchant.getApprovalStatus() != Merchant.STATUS_APPROVED) {
+            throw new BusinessException("商户未通过审核，无法创建票务");
+        }
+
+        validateOrganizersExistence(request.getOrganizers());
+
         List<Organizer> organizers = new ArrayList<>();
 
         Event event = modelMapper.map(request, Event.class);
@@ -104,6 +126,8 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
             throw new BusinessException("票务已上架，无法修改");
         }
 
+        validateTime(request.getSaleStartTime(), request.getSaleEndTime());
+
         updateBuilder(id).set(Event::getEventName, request.getEventName())
                          .set(Event::getEventType, request.getEventType())
                          .set(Event::getEventTime, request.getEventTime())
@@ -116,6 +140,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
                          .execute();
 
         if (request.getOrganizers() != null) {
+            validateOrganizersExistence(request.getOrganizers());
             updateEventOrganizers(id, request.getOrganizers());
         }
 
@@ -169,6 +194,13 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         }
         IPage<Event> pageInfo = baseMapper.selectJoinPage(new Page<>(page, pageSize), Event.class, wrapper);
         return new PageResponse<>(pageInfo.convert(e -> modelMapper.map(e, EventResponse.class)));
+    }
+
+    private void validateOrganizersExistence(List<@NotNull Integer> organizerIds) {
+        List<Organizer> existing = organizerService.listByIds(organizerIds);
+        if (existing.size() != organizerIds.size()) {
+            throw new ResourceNotFoundException("部分主办方不存在");
+        }
     }
 
     private void removeEventOrganizerRelation(int id) {

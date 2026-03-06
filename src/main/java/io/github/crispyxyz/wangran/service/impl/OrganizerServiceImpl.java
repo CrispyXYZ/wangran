@@ -43,7 +43,7 @@ public class OrganizerServiceImpl extends BaseEntityService<OrganizerMapper, Org
     @Transactional
     @Override
     public Organizer partialUpdate(int id, UpdateOrganizerRequest request) {
-        Organizer updated = updateBuilder(id).set(Organizer::getName, request.getName())
+        Organizer updated = updateBuilder(id).setUnique(Organizer::getName, request.getName(), "该名称已被占用")
                                              .set(Organizer::getPhoneNumber, request.getPhoneNumber())
                                              .set(Organizer::getAddress, request.getAddress())
                                              .execute();

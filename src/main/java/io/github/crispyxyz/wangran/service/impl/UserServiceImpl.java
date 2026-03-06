@@ -2,6 +2,7 @@ package io.github.crispyxyz.wangran.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import io.github.crispyxyz.wangran.component.UserExcelListener;
+import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.SystemException;
 import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.User;
@@ -58,6 +59,9 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
     @Transactional
     @Override
     public User create(String phoneNumber, byte[] passwordSha256) {
+        if (existPhoneNumber(phoneNumber)) {
+            throw new ResourceConflictException("该手机号已被占用");
+        }
         User user = new User();
         user.setPhoneNumber(phoneNumber);
         user.setPasswordSha256(passwordSha256);

@@ -2,6 +2,7 @@ package io.github.crispyxyz.wangran.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.crispyxyz.wangran.component.ModelMapperHelper;
+import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.request.CreateAccountRequest;
@@ -37,8 +38,6 @@ public class MerchantController {
     private final MerchantService merchantService;
     private final ModelMapperHelper modelMapperHelper;
     private final ModelMapper modelMapper;
-    private final AuthService authService;
-    // TODO 取代authService？
 
     @AdminOnly
     @GetMapping
@@ -99,7 +98,6 @@ public class MerchantController {
         @PathVariable int id,
         @Valid @RequestBody UpdateAccountRequest request
     ) {
-        // TODO 可能需要拒绝未审核商户修改个人信息
         MerchantResponse merchantResponse =
             modelMapper.map(merchantService.partialUpdate(id, request), MerchantResponse.class);
         return ResponseUtil.success(merchantResponse);
@@ -115,7 +113,6 @@ public class MerchantController {
 
     /**
      * 审核接口
-     * TODO 拒绝时应检验检验RejectReason不为null
      *
      * @param reviewRequest 审核请求参数
      * @return 商户信息
@@ -125,6 +122,9 @@ public class MerchantController {
     @Operation(summary = "审核商户", description = "返回商户信息，仅管理员可访问")
     public BaseResponse<MerchantResponse> review(@Valid @RequestBody ReviewRequest reviewRequest) {
         log.info("接收审核请求: {}", reviewRequest);
+        if (reviewRequest.getApproved() == null) {
+            throw new BusinessException("审核结果不能为空");
+        }
         Merchant data = merchantService.reviewMerchant(
             reviewRequest.getMerchantPhoneNumber(),
             reviewRequest.getApproved(),

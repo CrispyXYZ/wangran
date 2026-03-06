@@ -2,6 +2,8 @@ package io.github.crispyxyz.wangran.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import io.github.crispyxyz.wangran.component.MerchantExcelListener;
+import io.github.crispyxyz.wangran.exception.BusinessException;
+import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.exception.SystemException;
 import io.github.crispyxyz.wangran.mapper.MerchantMapper;
@@ -36,6 +38,11 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     @Transactional
     @Override
     public Merchant partialUpdate(int id, UpdateAccountRequest request) {
+        Merchant existing = getById(id);
+        if (existing.getApprovalStatus() != Merchant.STATUS_APPROVED) {
+            throw new BusinessException("商户未通过审核，无法修改信息");
+        }
+
         Merchant merchant =
             updateBuilder(id).setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
                              .setUnique(Merchant::getUsername, request.getUsername(), "该昵称已被占用")
@@ -60,6 +67,9 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     @Transactional
     @Override
     public Merchant reviewMerchant(String phoneNumber, boolean approved, String rejectReason) {
+        if (!approved && (rejectReason == null || rejectReason.isBlank())) {
+            throw new BusinessException("拒绝时必须填写驳回理由");
+        }
         // 根据手机号查询商户
         Merchant merchant = lambdaQuery().eq(Merchant::getPhoneNumber, phoneNumber)
                                          .one();
@@ -129,6 +139,9 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     }
 
     private Merchant create(String phoneNumber, byte[] passwordSha256, boolean autoApprove) {
+        if (existPhoneNumber(phoneNumber)) {
+            throw new ResourceConflictException("该手机号已被占用");
+        }
         Merchant merchant = new Merchant();
         merchant.setPhoneNumber(phoneNumber);
         merchant.setPasswordSha256(passwordSha256);
