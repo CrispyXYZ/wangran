@@ -30,7 +30,6 @@ public class OrderController {
     private final OrderService orderService;
     private final ModelMapper modelMapper;
 
-    // TODO "eventObject": null
     @UserOnly
     @PostMapping
     @Operation(summary = "创建订单", description = "返回订单数据，仅用户可以访问此接口")

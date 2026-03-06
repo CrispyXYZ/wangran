@@ -86,6 +86,7 @@ public class OrderServiceImpl implements OrderService {
         userEvent.setCreateTime(Instant.now());
         userEvent.setRefunded(0);
         userEvent.setTicketCode(GenerationUtil.generateUniqueSequence("O"));
+        userEvent.setEventObject(event);
         userEventService.save(userEvent);
         log.info("购票成功，订单号：{}，用户ID：{}，票务ID：{}", userEvent.getId(), userId, eventId);
 
