@@ -19,6 +19,10 @@ spring:
   jackson:
     date-format: com.fasterxml.jackson.databind.util.ISO8601DateFormat
 
+springdoc:
+  swagger-ui:
+    default-model-expand-depth: 10
+
 monitor:
   time:
     threshold: 50

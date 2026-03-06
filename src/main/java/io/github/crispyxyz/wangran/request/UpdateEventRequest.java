@@ -19,7 +19,7 @@ public class UpdateEventRequest {
     private String eventType;
 
     @Future
-    @Schema(description = "举办时间", example = "2026-03-06T12:34:56.789Z")
+    @Schema(description = "举办时间")
     private Instant eventTime;
 
     @Size(max = 10)
@@ -38,11 +38,11 @@ public class UpdateEventRequest {
     private Boolean onShelf;
 
     @Future
-    @Schema(description = "销售开始时间", example = "2026-03-06T12:34:56.789Z")
+    @Schema(description = "销售开始时间")
     private Instant saleStartTime;
 
     @Future
-    @Schema(description = "销售结束时间", example = "2026-03-06T12:34:56.789Z")
+    @Schema(description = "销售结束时间")
     private Instant saleEndTime;
 
     @Size(min = 1)

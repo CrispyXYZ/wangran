@@ -22,7 +22,7 @@ public class CreateEventRequest {
 
     @NotNull
     @Future
-    @Schema(description = "举办时间", example = "2026-03-06T12:34:56.789Z")
+    @Schema(description = "举办时间")
     private Instant eventTime;
 
     @NotBlank
@@ -42,12 +42,12 @@ public class CreateEventRequest {
 
     @NotNull
     @Future
-    @Schema(description = "销售开始时间", example = "2026-03-06T12:34:56.789Z")
+    @Schema(description = "销售开始时间")
     private Instant saleStartTime;
 
     @NotNull
     @Future
-    @Schema(description = "销售结束时间", example = "2026-03-06T12:34:56.789Z")
+    @Schema(description = "销售结束时间")
     private Instant saleEndTime;
 
     @NotEmpty
