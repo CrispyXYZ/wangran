@@ -1,10 +1,4 @@
-DROP DATABASE IF EXISTS `wangran_db`;
-
-CREATE DATABASE `wangran_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION = 'N' */;
-
-USE wangran_db;
-
-create table merchant
+create table if not exists merchant
 (
     id               int auto_increment
         primary key,
@@ -26,7 +20,7 @@ create table merchant
         unique (username_vc)
 );
 
-create table event_table
+create table if not exists event_table
 (
     id              int auto_increment
         primary key,
@@ -49,10 +43,7 @@ create table event_table
         foreign key (merchant_id) references merchant (id)
 );
 
-create index merchant_id
-    on event_table (merchant_id);
-
-create table organizer
+create table if not exists organizer
 (
     id           int auto_increment
         primary key,
@@ -65,7 +56,7 @@ create table organizer
         unique (name_vc)
 );
 
-create table organizer_event
+create table if not exists organizer_event
 (
     organizer_id int                  not null,
     event_id     int                  not null,
@@ -78,7 +69,7 @@ create table organizer_event
         foreign key (organizer_id) references organizer (id)
 );
 
-create table user_table
+create table if not exists user_table
 (
     id              int auto_increment
         primary key,
@@ -94,7 +85,7 @@ create table user_table
         unique (username_vc)
 );
 
-create table user_event
+create table if not exists user_event
 (
     ticket_code    varchar(20)          not null,
     create_time    datetime             not null,
