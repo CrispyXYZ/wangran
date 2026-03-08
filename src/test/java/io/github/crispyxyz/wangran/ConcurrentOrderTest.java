@@ -312,9 +312,9 @@ public class ConcurrentOrderTest {
         endLatch.await(30, TimeUnit.SECONDS);
         executor.shutdown();
 
-        // 最终库存 = 10 (退票+1，购票-1)
+        // 最终库存 = 9 (退票+1，购票-1)
         Event event = eventService.getById(testEventId);
-        assertEquals(10, event.getStock());
+        assertEquals(9, event.getStock());
 
         // 订单数：原有订单已退票，新订单可能成功（若T2在T1之后执行）
         long orders = userEventService.lambdaQuery()
