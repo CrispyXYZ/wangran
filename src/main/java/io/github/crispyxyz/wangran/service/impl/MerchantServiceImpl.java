@@ -38,10 +38,7 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     @Transactional
     @Override
     public Merchant partialUpdate(int id, UpdateAccountRequest request) {
-        Merchant existing = getById(id);
-        if (existing.getApprovalStatus() != Merchant.STATUS_APPROVED) {
-            throw new BusinessException("商户未通过审核，无法修改信息");
-        }
+        validateApprovalStatus(id);
 
         Merchant merchant =
             updateBuilder(id).setUnique(Merchant::getPhoneNumber, request.getPhoneNumber(), "该手机号已被占用")
@@ -130,6 +127,14 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         } catch (IOException e) {
             log.error("批量导入商户失败", e);
             throw new SystemException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void validateApprovalStatus(int id) {
+        Merchant merchant = getById(id);
+        if (merchant == null || merchant.getApprovalStatus() != Merchant.STATUS_APPROVED) {
+            throw new BusinessException("商户未通过审核");
         }
     }
 

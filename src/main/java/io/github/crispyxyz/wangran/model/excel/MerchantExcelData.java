@@ -22,7 +22,7 @@ public class MerchantExcelData {
     @Size(min = 6, max = 50)
     private String password;
 
-    @ExcelProperty({"商户编号", "商户ID"})
+    @ExcelProperty("商户编号")
     @Size(max = 20)
     @Pattern(regexp = "^mid_.*$", message = "商户编号应当以mid_开头")
     private String merchantCode;

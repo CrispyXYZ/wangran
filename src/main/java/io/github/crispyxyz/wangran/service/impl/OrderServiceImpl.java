@@ -10,7 +10,10 @@ import io.github.crispyxyz.wangran.component.ModelMapperHelper;
 import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.mapper.UserEventMapper;
-import io.github.crispyxyz.wangran.model.*;
+import io.github.crispyxyz.wangran.model.Event;
+import io.github.crispyxyz.wangran.model.Organizer;
+import io.github.crispyxyz.wangran.model.OrganizerEvent;
+import io.github.crispyxyz.wangran.model.UserEvent;
 import io.github.crispyxyz.wangran.response.OrderResponse;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.OrderService;
@@ -43,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
                     .eq(UserEvent::getEventId, eventId)
                     .eq(UserEvent::getRefunded, 0);
 
-        // 这里开始加锁
+        // 这里开始加悲观锁，防止并发超卖
         Event event = eventMapper.selectByIdForUpdate(eventId);
         if (userEventMapper.selectCount(existWrapper) > 0) {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：重复购票", userId, eventId);
@@ -53,10 +56,8 @@ public class OrderServiceImpl implements OrderService {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：票务不存在", userId, eventId);
             throw new BusinessException("票务不存在");
         }
-        Merchant merchant = merchantService.getById(event.getMerchantId());
-        if (merchant == null || merchant.getApprovalStatus() != Merchant.STATUS_APPROVED) {
-            throw new BusinessException("该票务所属商户未通过审核，暂时无法购买");
-        }
+
+        merchantService.validateApprovalStatus(event.getMerchantId());
 
         Instant now = Instant.now();
         if (event.getOnShelf() == null || event.getOnShelf() == 0) {
@@ -75,6 +76,8 @@ public class OrderServiceImpl implements OrderService {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：库存不足", userId, eventId);
             throw new BusinessException("库存不足");
         }
+
+        // 校验完成，开始减少库存
         int rows = eventMapper.updateStockDecreaseById(eventId);
         if (rows == 0) {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：库存不足(并发)", userId, eventId);
@@ -97,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public void refundOrder(Integer userId, Integer orderId) {
-        // 这里开始加锁
+        // 这里开始加悲观锁，防止重复购票/并发修改
         UserEvent userEvent = userEventMapper.selectByIdForUpdate(orderId);
         if (userEvent == null) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单不存在", userId, orderId);
@@ -108,6 +111,8 @@ public class OrderServiceImpl implements OrderService {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：非本人订单", userId, orderId);
             throw new BusinessException("只能退自己的订单");
         }
+
+        // 对票务记录加锁
         Event event = eventMapper.selectByIdForUpdate(userEvent.getEventId());
         if (userEvent.getRefunded() != null && userEvent.getRefunded() == 1) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单已退票", userId, orderId);
@@ -117,11 +122,14 @@ public class OrderServiceImpl implements OrderService {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：票务不存在", userId, orderId);
             throw new BusinessException("票务不存在");
         }
+
+        // 增加库存
         int rows = eventMapper.updateStockIncreaseById(event.getId());
         if (rows == 0) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：库存回退失败", userId, orderId);
             throw new BusinessException("库存回退失败");
         }
+
         userEvent.setRefunded(1);
         userEventService.updateById(userEvent);
         log.info("退票成功，订单号：{}，用户ID：{}，票务ID：{}", orderId, userId, userEvent.getEventId());
@@ -151,16 +159,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 获取基础查询wrapper，含订单所有字段，关联票务
+     * 获取基础查询wrapper，含订单所有字段，关联票务及其主办方
      */
     private MPJLambdaWrapper<UserEvent> getBaseWrapper() {
         return JoinWrappers.<UserEvent>lambda()
                            .selectAll(UserEvent.class)
                            .selectAssociation(
-                               Event.class,
-                               UserEvent::getEventObject,
-                               ass -> ass.all()                           // 映射 Event 所有字段
-                                         .collection(Organizer.class, Event::getOrganizers) // 嵌套映射主办方集合
+                               Event.class, UserEvent::getEventObject,
+                               // 映射 Event 所有字段
+                               ass -> ass.all()
+                                         // 嵌套映射主办方集合
+                                         .collection(Organizer.class, Event::getOrganizers)
                            )
                            .leftJoin(Event.class, Event::getId, UserEvent::getEventId)
                            .leftJoin(OrganizerEvent.class, OrganizerEvent::getEventId, Event::getId)

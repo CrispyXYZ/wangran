@@ -103,7 +103,7 @@ public class MerchantController {
 
     @AdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "批量导入商户（表格文件）", description = "返回空数据，仅管理员可以访问")
+    @Operation(summary = "批量导入商户（表格文件）", description = "返回空数据，仅管理员可以访问，失败时不会更新任何数据")
     public BaseResponse<Void> importMerchant(@RequestParam("file") MultipartFile file) {
         merchantService.importMerchants(file);
         return ResponseUtil.success(null);

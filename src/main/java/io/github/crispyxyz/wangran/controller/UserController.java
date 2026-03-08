@@ -104,7 +104,7 @@ public class UserController {
 
     @AdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "批量导入用户数据（表格）", description = "返回空数据，仅管理员可以访问")
+    @Operation(summary = "批量导入用户数据（表格）", description = "返回空数据，仅管理员可以访问，失败时不会更新任何数据")
     public BaseResponse<Void> importUser(@RequestParam("file") MultipartFile file) {
         try {
             userService.importUsers(file);

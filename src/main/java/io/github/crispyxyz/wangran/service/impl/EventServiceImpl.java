@@ -11,7 +11,6 @@ import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.model.Event;
-import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.Organizer;
 import io.github.crispyxyz.wangran.model.OrganizerEvent;
 import io.github.crispyxyz.wangran.request.CreateEventRequest;
@@ -59,6 +58,13 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
         }
     }
 
+    private static void validateNotOnShelf(int id, Event event) {
+        if (event.getOnShelf() == 1) {
+            log.warn("票务修改失败，已上架，票务ID：{}", id);
+            throw new BusinessException("票务已上架，无法修改");
+        }
+    }
+
     @Override
     protected SFunction<Event, ?> getIdField() {
         return Event::getId;
@@ -68,20 +74,13 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
     @Override
     public Event create(int merchantId, CreateEventRequest request) {
         validateTime(request.getSaleStartTime(), request.getSaleEndTime());
-
-        Merchant merchant = merchantService.getById(merchantId);
-        if (merchant == null || merchant.getApprovalStatus() != Merchant.STATUS_APPROVED) {
-            throw new BusinessException("商户未通过审核，无法创建票务");
-        }
-
+        merchantService.validateApprovalStatus(merchantId);
         validateOrganizersExistence(request.getOrganizers());
-
-        List<Organizer> organizers = new ArrayList<>();
 
         Event event = modelMapper.map(request, Event.class);
         event.setMerchantId(merchantId);
         event.setEventCode(GenerationUtil.generateUniqueSequence("E"));
-        event.setOrganizers(organizers);
+        event.setOrganizers(new ArrayList<>());
         this.save(event);
 
         for (int organizer : request.getOrganizers()) {
@@ -89,7 +88,8 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
             relation.setOrganizerId(organizer);
             relation.setEventId(event.getId());
             organizerEventService.save(relation);
-            organizers.add(organizerService.getById(organizer));
+            event.getOrganizers()
+                 .add(organizerService.getById(organizer));
         }
         event.setOnShelf(0);
         log.info("创建票务成功，票务ID：{}，商户ID：{}，名称：{}", event.getId(), merchantId, event.getEventName());
@@ -121,11 +121,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
     public Event partialUpdate(AppPrincipal principal, int id, UpdateEventRequest request) {
         // 这里同时完成了验证id和权限
         Event event = getById(id, principal);
-        if (event.getOnShelf() == 1) {
-            log.warn("票务更新失败，已上架，票务ID：{}", id);
-            throw new BusinessException("票务已上架，无法修改");
-        }
-
+        validateNotOnShelf(id, event);
         validateTime(request.getSaleStartTime(), request.getSaleEndTime());
 
         updateBuilder(id).set(Event::getEventName, request.getEventName())
@@ -153,10 +149,7 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
     public boolean removeById(int id, AppPrincipal principal) {
         // 这里同时完成了验证id和权限
         Event event = getById(id, principal);
-        if (event.getOnShelf() == 1) {
-            log.warn("票务删除失败，已上架，票务ID：{}", id);
-            throw new BusinessException("票务已上架，无法修改");
-        }
+        validateNotOnShelf(id, event);
 
         boolean result = this.removeById(id);
         if (!result) {
@@ -231,6 +224,9 @@ public class EventServiceImpl extends BaseEntityService<EventMapper, Event> impl
                            .leftJoin(Organizer.class, Organizer::getId, OrganizerEvent::getOrganizerId);
     }
 
+    /**
+     * 根据当前登录主体过滤查询的记录，merchant身份只能查自己的票务
+     */
     private void applyPrincipalFilter(MPJLambdaWrapper<Event> wrapper, AppPrincipal principal) {
         wrapper.eq("merchant".equals(principal.getType()), Event::getMerchantId, principal.getId());
     }

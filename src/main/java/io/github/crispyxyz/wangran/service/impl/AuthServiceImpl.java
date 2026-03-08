@@ -134,10 +134,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 验证审核状态
-        if (merchant.getApprovalStatus() == 0) {
+        if (merchant.getApprovalStatus() == Merchant.STATUS_PENDING) {
             throw new MerchantApprovalException("审核中，请等待");
         }
-        if (merchant.getApprovalStatus() == 2) {
+        if (merchant.getApprovalStatus() == Merchant.STATUS_REJECTED) {
             throw new MerchantApprovalException("审核不通过，原因：" + merchant.getRejectReason());
         }
 
