@@ -288,7 +288,7 @@ public class ConcurrentOrderTest {
                 orderService.refundOrder(userA, order.getId());
                 refundSuccess.incrementAndGet();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             } finally {
                 endLatch.countDown();
             }
@@ -302,7 +302,7 @@ public class ConcurrentOrderTest {
             } catch (BusinessException e) {
                 // 预期可能因库存不足失败
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             } finally {
                 endLatch.countDown();
             }

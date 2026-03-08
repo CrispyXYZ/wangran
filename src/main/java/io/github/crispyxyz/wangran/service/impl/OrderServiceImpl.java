@@ -42,12 +42,13 @@ public class OrderServiceImpl implements OrderService {
         existWrapper.eq(UserEvent::getUserId, userId)
                     .eq(UserEvent::getEventId, eventId)
                     .eq(UserEvent::getRefunded, 0);
+
+        // 这里开始加锁
+        Event event = eventMapper.selectByIdForUpdate(eventId);
         if (userEventMapper.selectCount(existWrapper) > 0) {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：重复购票", userId, eventId);
             throw new BusinessException("每人每场仅可购买一张票");
         }
-
-        Event event = eventMapper.selectByIdForUpdate(eventId);
         if (event == null) {
             log.warn("购票失败，用户ID：{}，票务ID：{}，原因：票务不存在", userId, eventId);
             throw new BusinessException("票务不存在");
@@ -96,7 +97,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public void refundOrder(Integer userId, Integer orderId) {
-        UserEvent userEvent = userEventService.getById(orderId);
+        // 这里开始加锁
+        UserEvent userEvent = userEventMapper.selectByIdForUpdate(orderId);
         if (userEvent == null) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单不存在", userId, orderId);
             throw new BusinessException("订单不存在");
@@ -106,12 +108,11 @@ public class OrderServiceImpl implements OrderService {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：非本人订单", userId, orderId);
             throw new BusinessException("只能退自己的订单");
         }
+        Event event = eventMapper.selectByIdForUpdate(userEvent.getEventId());
         if (userEvent.getRefunded() != null && userEvent.getRefunded() == 1) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：订单已退票", userId, orderId);
             throw new BusinessException("订单已退票");
         }
-
-        Event event = eventMapper.selectByIdForUpdate(userEvent.getEventId());
         if (event == null) {
             log.warn("退票失败，用户ID：{}，订单号：{}，原因：票务不存在", userId, orderId);
             throw new BusinessException("票务不存在");
