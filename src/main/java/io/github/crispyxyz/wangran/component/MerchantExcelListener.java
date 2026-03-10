@@ -4,6 +4,7 @@ import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.excel.MerchantExcelData;
 import io.github.crispyxyz.wangran.service.MerchantService;
+import io.github.crispyxyz.wangran.util.SecurityUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -28,7 +29,7 @@ public class MerchantExcelListener implements ReadListener<MerchantExcelData> {
     private final MerchantService merchantService;
     private final List<Merchant> cache = new ArrayList<>(CACHE_LIMIT);
 
-
+    // TODO 手机号冲突时应当拒绝导入
     @Override
     public void invoke(MerchantExcelData data, AnalysisContext context) {
         Set<ConstraintViolation<MerchantExcelData>> violations = VALIDATOR.validate(data);
@@ -39,6 +40,9 @@ public class MerchantExcelListener implements ReadListener<MerchantExcelData> {
             throw new BusinessException("Excel 数据校验失败：" + msg);
         }
         Merchant merchant = modelMapper.map(data, Merchant.class);
+        merchant.setPasswordSha256(SecurityUtil.computeSha256(data.getPassword()));
+        merchant.setApprovalStatus(Merchant.STATUS_APPROVED);
+        merchant.setRejectReason("");
         cache.add(merchant);
 
         if (cache.size() >= CACHE_LIMIT) {

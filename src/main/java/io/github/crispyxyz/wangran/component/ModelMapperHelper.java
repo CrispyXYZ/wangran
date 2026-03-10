@@ -24,4 +24,8 @@ public class ModelMapperHelper {
         destinationPage.setRecords(destinationList);
         return destinationPage;
     }
+
+    public <D> D map(Object source, Class<D> destinationClass) {
+        return modelMapper.map(source, destinationClass);
+    }
 }

@@ -4,6 +4,7 @@ import io.github.crispyxyz.wangran.exception.BusinessException;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.model.excel.UserExcelData;
 import io.github.crispyxyz.wangran.service.UserService;
+import io.github.crispyxyz.wangran.util.SecurityUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -28,6 +29,7 @@ public class UserExcelListener implements ReadListener<UserExcelData> {
     private final UserService userService;
     private final List<User> cache = new ArrayList<>(CACHE_LIMIT);
 
+    // TODO 手机号冲突时应当拒绝导入
     @Override
     public void invoke(UserExcelData data, AnalysisContext context) {
         Set<ConstraintViolation<UserExcelData>> violations = VALIDATOR.validate(data);
@@ -38,6 +40,7 @@ public class UserExcelListener implements ReadListener<UserExcelData> {
             throw new BusinessException("Excel 数据校验失败：" + msg);
         }
         User user = modelMapper.map(data, User.class);
+        user.setPasswordSha256(SecurityUtil.computeSha256(data.getPassword()));
         cache.add(user);
 
         if (cache.size() >= CACHE_LIMIT) {

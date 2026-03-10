@@ -6,8 +6,10 @@ import io.github.crispyxyz.wangran.response.BaseResponse;
 import io.github.crispyxyz.wangran.response.OrderResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.AppPrincipal;
+import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.security.annotation.MerchantOnly;
 import io.github.crispyxyz.wangran.security.annotation.UserOnly;
+import io.github.crispyxyz.wangran.security.annotation.UserOrAdmin;
 import io.github.crispyxyz.wangran.service.OrderService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,20 +51,27 @@ public class OrderController {
     }
 
     @UserOnly
-    @PostMapping("/{orderId}/refund")
+    @PostMapping("/{id}/refund")
     @Operation(summary = "退订", description = "返回空数据，仅用户可以访问此接口")
-    public BaseResponse<Void> refundOrder(
-        @AuthenticationPrincipal AppPrincipal principal,
-        @PathVariable Integer orderId
-    ) {
+    public BaseResponse<Void> refundOrder(@AuthenticationPrincipal AppPrincipal principal, @PathVariable int id) {
         try {
-            orderService.refundOrder(principal.getId(), orderId);
-            log.info("退票成功，订单号：{}，用户ID：{}", orderId, principal.getId());
+            orderService.refundOrder(principal.getId(), id);
+            log.info("退票成功，订单号：{}，用户ID：{}", id, principal.getId());
             return ResponseUtil.success(null);
         } catch (Exception e) {
-            log.warn("退票失败，订单号：{}，用户ID：{}，原因：{}", orderId, principal.getId(), e.getMessage());
+            log.warn("退票失败，订单号：{}，用户ID：{}，原因：{}", id, principal.getId(), e.getMessage());
             throw e;
         }
+    }
+
+    @UserOrAdmin
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "根据id获取订单",
+        description = "返回订单数据，仅登录用户可以查看（管理员无限制，商户和用户只能查看自己相关的）"
+    )
+    public BaseResponse<OrderResponse> getOrder(@AuthenticationPrincipal AppPrincipal principal, @PathVariable int id) {
+        return ResponseUtil.success(orderService.getById(principal, id));
     }
 
     @UserOnly
@@ -85,9 +94,23 @@ public class OrderController {
     public BaseResponse<PageResponse<OrderResponse>> getMerchantOrders(
         @AuthenticationPrincipal AppPrincipal principal,
         @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
-        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize,
+        @Parameter(description = "是否已退票", example = "false") @RequestParam(required = false) Boolean refunded
     ) {
-        IPage<OrderResponse> pageInfo = orderService.getMerchantOrders(principal.getId(), page, pageSize);
+        IPage<OrderResponse> pageInfo = orderService.getMerchantOrders(principal.getId(), page, pageSize, refunded);
+        PageResponse<OrderResponse> pageResponse = new PageResponse<>(pageInfo);
+        return ResponseUtil.success(pageResponse);
+    }
+
+    @AdminOnly
+    @GetMapping("/admin")
+    @Operation(summary = "管理员获取所有订单", description = "返回分页的订单数据，仅管理员可访问此接口")
+    public BaseResponse<PageResponse<OrderResponse>> getOrders(
+        @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页记录数", example = "10") @RequestParam(defaultValue = "10") int pageSize,
+        @Parameter(description = "是否已退票", example = "false") @RequestParam(required = false) Boolean refunded
+    ) {
+        IPage<OrderResponse> pageInfo = orderService.getOrders(page, pageSize, refunded);
         PageResponse<OrderResponse> pageResponse = new PageResponse<>(pageInfo);
         return ResponseUtil.success(pageResponse);
     }

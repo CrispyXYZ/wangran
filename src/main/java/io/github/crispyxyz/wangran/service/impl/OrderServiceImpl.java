@@ -8,6 +8,7 @@ import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import io.github.crispyxyz.wangran.component.ModelMapperHelper;
 import io.github.crispyxyz.wangran.exception.BusinessException;
+import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.mapper.EventMapper;
 import io.github.crispyxyz.wangran.mapper.UserEventMapper;
 import io.github.crispyxyz.wangran.model.Event;
@@ -15,9 +16,9 @@ import io.github.crispyxyz.wangran.model.Organizer;
 import io.github.crispyxyz.wangran.model.OrganizerEvent;
 import io.github.crispyxyz.wangran.model.UserEvent;
 import io.github.crispyxyz.wangran.response.OrderResponse;
+import io.github.crispyxyz.wangran.security.AppPrincipal;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.OrderService;
-import io.github.crispyxyz.wangran.service.UserEventService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,13 +35,12 @@ public class OrderServiceImpl implements OrderService {
 
     private final EventMapper eventMapper;
     private final UserEventMapper userEventMapper;
-    private final UserEventService userEventService;
     private final ModelMapperHelper modelMapperHelper;
     private final MerchantService merchantService;
 
     @Transactional
     @Override
-    public UserEvent createOrder(Integer userId, Integer eventId) {
+    public UserEvent createOrder(Integer userId, int eventId) {
         LambdaQueryWrapper<UserEvent> existWrapper = Wrappers.lambdaQuery();
         existWrapper.eq(UserEvent::getUserId, userId)
                     .eq(UserEvent::getEventId, eventId)
@@ -91,7 +91,7 @@ public class OrderServiceImpl implements OrderService {
         userEvent.setRefunded(0);
         userEvent.setTicketCode(GenerationUtil.generateUniqueSequence("O"));
         userEvent.setEventObject(event);
-        userEventService.save(userEvent);
+        userEventMapper.insert(userEvent);
         log.info("购票成功，订单号：{}，用户ID：{}，票务ID：{}", userEvent.getId(), userId, eventId);
 
         return userEvent;
@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void refundOrder(Integer userId, Integer orderId) {
+    public void refundOrder(Integer userId, int orderId) {
         // 这里开始加悲观锁，防止重复购票/并发修改
         UserEvent userEvent = userEventMapper.selectByIdForUpdate(orderId);
         if (userEvent == null) {
@@ -131,7 +131,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         userEvent.setRefunded(1);
-        userEventService.updateById(userEvent);
+        userEventMapper.updateById(userEvent);
         log.info("退票成功，订单号：{}，用户ID：{}，票务ID：{}", orderId, userId, userEvent.getEventId());
     }
 
@@ -140,19 +140,52 @@ public class OrderServiceImpl implements OrderService {
     public IPage<OrderResponse> getUserOrders(Integer userId, int page, int pageSize, Boolean refunded) {
         MPJLambdaWrapper<UserEvent> wrapper = getBaseWrapper().eq(UserEvent::getUserId, userId);
 
-        if (refunded != null) {
-            wrapper.eq(UserEvent::getRefunded, refunded);
-        }
-        IPage<UserEvent> pageInfo =
-            userEventMapper.selectJoinPage(new Page<>(page, pageSize), UserEvent.class, wrapper);
-
-        return modelMapperHelper.mapPage(pageInfo, OrderResponse.class);
+        return getOrderResponsePage(page, pageSize, refunded, wrapper);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public IPage<OrderResponse> getMerchantOrders(Integer merchantId, int page, int pageSize) {
+    public IPage<OrderResponse> getMerchantOrders(Integer merchantId, int page, int pageSize, Boolean refunded) {
         MPJLambdaWrapper<UserEvent> wrapper = getBaseWrapper().eq(Event::getMerchantId, merchantId);
+
+        return getOrderResponsePage(page, pageSize, refunded, wrapper);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public IPage<OrderResponse> getOrders(int page, int pageSize, Boolean refunded) {
+        MPJLambdaWrapper<UserEvent> wrapper = getBaseWrapper();
+
+        return getOrderResponsePage(page, pageSize, refunded, wrapper);
+    }
+
+    @Transactional
+    @Override
+    public OrderResponse getById(AppPrincipal principal, int orderId) {
+        int principalId = principal.getId();
+        String type = principal.getType();
+        MPJLambdaWrapper<UserEvent> wrapper = getBaseWrapper().eq(UserEvent::getId, orderId);
+        if ("user".equals(type)) {
+            wrapper.eq(UserEvent::getUserId, principalId);
+        } else if ("merchant".equals(type)) {
+            wrapper.eq(Event::getMerchantId, principalId);
+        }
+        UserEvent order = userEventMapper.selectOne(wrapper);
+        if (order == null) {
+            throw new ResourceNotFoundException("找不到id为" + orderId + "的订单，订单不存在或权限不足");
+        }
+        return modelMapperHelper.map(order, OrderResponse.class);
+    }
+
+    private Page<OrderResponse> getOrderResponsePage(
+        int page,
+        int pageSize,
+        Boolean refunded,
+        MPJLambdaWrapper<UserEvent> wrapper
+    ) {
+        if (refunded != null) {
+            wrapper.eq(UserEvent::getRefunded, refunded);
+        }
         IPage<UserEvent> pageInfo =
             userEventMapper.selectJoinPage(new Page<>(page, pageSize), UserEvent.class, wrapper);
         return modelMapperHelper.mapPage(pageInfo, OrderResponse.class);

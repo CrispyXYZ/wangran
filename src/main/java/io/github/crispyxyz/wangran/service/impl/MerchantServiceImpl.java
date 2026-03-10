@@ -34,6 +34,7 @@ import java.io.IOException;
 public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merchant> implements MerchantService {
 
     private final ModelMapper modelMapper;
+    private final UserServiceImpl userService;
 
     @Transactional
     @Override
@@ -144,8 +145,8 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     }
 
     private Merchant create(String phoneNumber, byte[] passwordSha256, boolean autoApprove) {
-        if (existPhoneNumber(phoneNumber)) {
-            throw new ResourceConflictException("该手机号已被占用");
+        if (userService.existPhoneNumber(phoneNumber) || existPhoneNumber(phoneNumber)) {
+            throw new ResourceConflictException("该手机号已被注册");
         }
         Merchant merchant = new Merchant();
         merchant.setPhoneNumber(phoneNumber);
