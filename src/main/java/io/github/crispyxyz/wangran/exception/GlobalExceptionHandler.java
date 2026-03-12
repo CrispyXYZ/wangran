@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.stream.Collectors;
 
@@ -108,5 +109,12 @@ public class GlobalExceptionHandler {
         log.warn("业务异常： {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                              .body(ResponseUtil.error(e.getMessage()));
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<BaseResponse<Void>> handleNoHandlerFoundException(NoHandlerFoundException e) {
+        log.warn("请求路径不存在： {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                             .body(ResponseUtil.error("请求路径不存在"));
     }
 }

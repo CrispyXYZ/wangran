@@ -1,7 +1,11 @@
 package io.github.crispyxyz.wangran.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.crispyxyz.wangran.security.JwtFilter;
+import io.github.crispyxyz.wangran.util.ResponseUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -20,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,7 +39,27 @@ public class SecurityConfig {
                                                .permitAll()
                                                .anyRequest()
                                                .authenticated())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(customizer -> customizer.accessDeniedHandler(((request, response, authException) -> {
+                                                           log.warn("拒绝访问：{} {}", request.getMethod(),
+                                                            request.getRequestURI());
+                                                           response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                                           response.setContentType("application/json;charset=UTF-8");
+                                                           response.getWriter()
+                                                                   .write(objectMapper.writeValueAsString(ResponseUtil.error("权限不足")));
+                                                       }))
+                                                       .authenticationEntryPoint((request, response, authException) -> {
+                                                           log.warn(
+                                                               "认证失败：{} {}",
+                                                               request.getMethod(),
+                                                               request.getRequestURI()
+                                                           );
+                                                           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                                           response.setContentType("application/json;charset=UTF-8");
+                                                           response.getWriter()
+                                                                   .write(objectMapper.writeValueAsString(ResponseUtil.error(
+                                                                       "认证失败")));
+                                                       }));
         return http.build();
     }
 }

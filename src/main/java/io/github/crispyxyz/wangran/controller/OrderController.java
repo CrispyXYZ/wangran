@@ -67,8 +67,7 @@ public class OrderController {
     @UserOrAdmin
     @GetMapping("/{id}")
     @Operation(
-        summary = "根据id获取订单",
-        description = "返回订单数据，仅登录用户可以查看（管理员无限制，商户和用户只能查看自己相关的）"
+        summary = "根据id获取订单", description = "返回订单数据，仅登录用户可以查看（管理员无限制，商户和用户只能查看自己相关的）"
     )
     public BaseResponse<OrderResponse> getOrder(@AuthenticationPrincipal AppPrincipal principal, @PathVariable int id) {
         return ResponseUtil.success(orderService.getById(principal, id));
