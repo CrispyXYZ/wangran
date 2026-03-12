@@ -11,6 +11,7 @@ import io.github.crispyxyz.wangran.response.UserResponse;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.UserService;
+import io.github.crispyxyz.wangran.service.factory.impl.MerchantFactory;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserService userService;
     private final MerchantService merchantService;
+    private final MerchantFactory merchantFactory;
 
     /**
      * 用户/商户注册，不允许同一手机号重复注册
@@ -53,7 +55,8 @@ public class AuthServiceImpl implements AuthService {
         byte[] passwordSha256 = SecurityUtil.computeSha256(password);
 
         if (isMerchant) {
-            Merchant merchant = merchantService.create(phoneNumber, passwordSha256);
+            Merchant merchant = merchantFactory.create(phoneNumber, passwordSha256, false);
+            merchantService.save(merchant);
             return modelMapper.map(merchant, MerchantResponse.class);
         } else {
             User user = userService.create(phoneNumber, passwordSha256);
@@ -87,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 判断商户 id 登录
-        if (identifier.startsWith("mid_")) {
+        if (identifier.startsWith(Merchant.CODE_PREFIX)) {
             log.debug("商户id登录，identifier={}", identifier);
             // 通过id获取数据库中的对应商户
             Merchant merchant = merchantService.findByMerchantCode(identifier);

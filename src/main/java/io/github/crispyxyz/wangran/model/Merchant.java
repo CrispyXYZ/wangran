@@ -18,6 +18,8 @@ public class Merchant {
     public static final int STATUS_PENDING = 0;
     public static final int STATUS_APPROVED = 1;
     public static final int STATUS_REJECTED = 2;
+    public static final String USERNAME_PREFIX = "merchant_";
+    public static final String CODE_PREFIX = "mid_";
 
     /**
      *

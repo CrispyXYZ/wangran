@@ -11,6 +11,7 @@ import lombok.Data;
 @TableName(value = "user_table")
 @Data
 public class User {
+    public static final String USERNAME_PREFIX = "user_";
     /**
      *
      */

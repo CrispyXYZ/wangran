@@ -9,7 +9,7 @@ import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.model.excel.UserExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.UserService;
-import io.github.crispyxyz.wangran.util.GenerationUtil;
+import io.github.crispyxyz.wangran.service.factory.impl.UserFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fesod.sheet.FesodSheet;
@@ -32,6 +32,7 @@ import java.io.IOException;
 public class UserServiceImpl extends BaseEntityService<UserMapper, User> implements UserService {
 
     private final ModelMapper modelMapper;
+    private final UserFactory userFactory;
 
     @Transactional
     @Override
@@ -62,12 +63,8 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
         if (existPhoneNumber(phoneNumber)) {
             throw new ResourceConflictException("该手机号已被占用");
         }
-        User user = new User();
-        user.setPhoneNumber(phoneNumber);
-        user.setPasswordSha256(passwordSha256);
-        user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
+        User user = userFactory.create(phoneNumber, passwordSha256);
         save(user);
-        log.info("新建用户，用户ID：{}，手机号：{}", user.getId(), phoneNumber);
         return user;
     }
 

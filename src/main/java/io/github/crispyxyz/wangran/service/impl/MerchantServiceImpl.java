@@ -11,6 +11,7 @@ import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.excel.MerchantExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.MerchantService;
+import io.github.crispyxyz.wangran.service.factory.impl.MerchantFactory;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
 
     private final ModelMapper modelMapper;
     private final UserServiceImpl userService;
+    private final MerchantFactory merchantFactory;
 
     @Transactional
     @Override
@@ -148,18 +150,7 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         if (userService.existPhoneNumber(phoneNumber) || existPhoneNumber(phoneNumber)) {
             throw new ResourceConflictException("该手机号已被注册");
         }
-        Merchant merchant = new Merchant();
-        merchant.setPhoneNumber(phoneNumber);
-        merchant.setPasswordSha256(passwordSha256);
-
-        if (autoApprove) {
-            merchant.setMerchantCode(GenerationUtil.generateUniqueSequence("mid_"));
-            merchant.setUsername(GenerationUtil.generateUniqueUsername("merchant_"));
-            merchant.setApprovalStatus(Merchant.STATUS_APPROVED);
-            merchant.setRejectReason("");
-        } else {
-            merchant.setApprovalStatus(Merchant.STATUS_PENDING);
-        }
+        Merchant merchant = merchantFactory.create(phoneNumber, passwordSha256, autoApprove);
 
         save(merchant);
         return merchant;
@@ -175,13 +166,13 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     private void approve(Merchant merchant) {
         // 生成商户id
         if (merchant.getMerchantCode() == null) {
-            String id = GenerationUtil.generateUniqueSequence("mid_");
+            String id = GenerationUtil.generateUniqueSequence(Merchant.CODE_PREFIX);
             merchant.setMerchantCode(id);
         }
 
         // 生成昵称
         if (merchant.getUsername() == null) {
-            String username = GenerationUtil.generateUniqueUsername("merchant_");
+            String username = GenerationUtil.generateUniqueUsername(Merchant.USERNAME_PREFIX);
             merchant.setUsername(username);
         }
 

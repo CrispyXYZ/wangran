@@ -5,11 +5,9 @@ import io.github.crispyxyz.wangran.model.Event;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.model.UserEvent;
-import io.github.crispyxyz.wangran.service.EventService;
-import io.github.crispyxyz.wangran.service.MerchantService;
-import io.github.crispyxyz.wangran.service.OrderService;
-import io.github.crispyxyz.wangran.service.UserEventService;
-import io.github.crispyxyz.wangran.service.UserService;
+import io.github.crispyxyz.wangran.service.*;
+import io.github.crispyxyz.wangran.service.factory.impl.MerchantFactory;
+import io.github.crispyxyz.wangran.service.factory.impl.UserFactory;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * 声明：本集成测试类由AI生成，人工微调，用来检测业务逻辑在高并发下的问题
  */
- @Slf4j
+@Slf4j
 @SpringBootTest
 @ActiveProfiles("test") // 使用测试配置文件（如 H2 数据库）
 public class ConcurrentOrderTest {
@@ -55,16 +53,15 @@ public class ConcurrentOrderTest {
     private Integer testEventId;
     private Integer testMerchantId;
     private List<Integer> testUserIds;
+    @Autowired
+    private MerchantFactory merchantFactory;
+    @Autowired
+    private UserFactory userFactory;
 
     @BeforeEach
     void setUp() {
         // 创建测试商户（已审核）
-        Merchant merchant = new Merchant();
-        merchant.setPhoneNumber("1234567890");
-        merchant.setPasswordSha256(SecurityUtil.computeSha256("password"));
-        merchant.setApprovalStatus(Merchant.STATUS_APPROVED);
-        merchant.setMerchantCode(GenerationUtil.generateUniqueSequence("mid_"));
-        merchant.setUsername(GenerationUtil.generateUniqueUsername("merchant_"));
+        Merchant merchant = merchantFactory.create("1234567890", SecurityUtil.computeSha256("password"), true);
         merchantService.save(merchant);
         testMerchantId = merchant.getId();
 
@@ -72,13 +69,16 @@ public class ConcurrentOrderTest {
         Event event = new Event();
         event.setEventName("Test Event");
         event.setEventType("演出");
-        event.setEventTime(Instant.now().plusSeconds(3600));
+        event.setEventTime(Instant.now()
+                                  .plusSeconds(3600));
         event.setCity("威海");
         event.setPrice(BigDecimal.valueOf(100));
         event.setStock(10);
         event.setOnShelf(1);
-        event.setSaleStartTime(Instant.now().minusSeconds(3600));
-        event.setSaleEndTime(Instant.now().plusSeconds(3600));
+        event.setSaleStartTime(Instant.now()
+                                      .minusSeconds(3600));
+        event.setSaleEndTime(Instant.now()
+                                    .plusSeconds(3600));
         event.setMerchantId(testMerchantId);
         event.setEventCode(GenerationUtil.generateUniqueSequence("E"));
         eventService.save(event);
@@ -87,10 +87,7 @@ public class ConcurrentOrderTest {
         // 创建20个测试用户
         testUserIds = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            User user = new User();
-            user.setPhoneNumber(String.valueOf(i));
-            user.setPasswordSha256(SecurityUtil.computeSha256("password"));
-            user.setUsername(GenerationUtil.generateUniqueUsername("user_"));
+            User user = userFactory.create(String.valueOf(i), SecurityUtil.computeSha256("password"));
             userService.save(user);
             testUserIds.add(user.getId());
         }
@@ -100,7 +97,9 @@ public class ConcurrentOrderTest {
     void tearDown() {
         // 清理订单（关联事件）
         if (testEventId != null) {
-            userEventService.lambdaUpdate().eq(UserEvent::getEventId, testEventId).remove();
+            userEventService.lambdaUpdate()
+                            .eq(UserEvent::getEventId, testEventId)
+                            .remove();
         }
         // 清理事件
         if (testEventId != null) {
