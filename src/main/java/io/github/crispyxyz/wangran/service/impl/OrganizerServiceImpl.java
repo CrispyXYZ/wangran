@@ -6,6 +6,7 @@ import io.github.crispyxyz.wangran.mapper.OrganizerMapper;
 import io.github.crispyxyz.wangran.model.Organizer;
 import io.github.crispyxyz.wangran.request.UpdateOrganizerRequest;
 import io.github.crispyxyz.wangran.service.OrganizerService;
+import io.github.crispyxyz.wangran.service.base.BaseEntityService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

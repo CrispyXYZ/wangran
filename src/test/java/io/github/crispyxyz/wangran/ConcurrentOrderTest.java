@@ -6,10 +6,7 @@ import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.model.UserEvent;
 import io.github.crispyxyz.wangran.service.*;
-import io.github.crispyxyz.wangran.service.factory.impl.MerchantFactory;
-import io.github.crispyxyz.wangran.service.factory.impl.UserFactory;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
-import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,15 +51,12 @@ public class ConcurrentOrderTest {
     private Integer testMerchantId;
     private List<Integer> testUserIds;
     @Autowired
-    private MerchantFactory merchantFactory;
-    @Autowired
-    private UserFactory userFactory;
+    private AccountCreationService accountCreationService;
 
     @BeforeEach
     void setUp() {
         // 创建测试商户（已审核）
-        Merchant merchant = merchantFactory.create("1234567890", SecurityUtil.computeSha256("password"), true);
-        merchantService.save(merchant);
+        Merchant merchant = accountCreationService.createMerchant("1234567890", "password", true);
         testMerchantId = merchant.getId();
 
         // 创建测试票务（已上架，库存10）
@@ -87,8 +81,7 @@ public class ConcurrentOrderTest {
         // 创建20个测试用户
         testUserIds = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            User user = userFactory.create(String.valueOf(i), SecurityUtil.computeSha256("password"));
-            userService.save(user);
+            User user = accountCreationService.createUser(String.valueOf(i), "password");
             testUserIds.add(user.getId());
         }
     }

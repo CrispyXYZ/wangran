@@ -12,12 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserService extends EntityService<User> {
     User partialUpdate(int id, UpdateAccountRequest request);
 
-    boolean existPhoneNumber(String phoneNumber);
-
-    boolean existUsername(String username);
-
-    User create(String phoneNumber, byte[] passwordSha256);
-
     User findByPhoneNumber(String phoneNumber);
 
     void importUsers(MultipartFile file);

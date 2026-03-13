@@ -11,7 +11,7 @@ import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.response.UserResponse;
 import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.security.annotation.UserSelfOrAdmin;
-import io.github.crispyxyz.wangran.service.AuthService;
+import io.github.crispyxyz.wangran.service.AccountCreationService;
 import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +35,7 @@ public class UserController {
     private final UserService userService;
     private final ModelMapperHelper modelMapperHelper;
     private final ModelMapper modelMapper;
-    private final AuthService authService;
+    private final AccountCreationService accountCreationService;
 
     @AdminOnly
     @GetMapping
@@ -62,7 +62,6 @@ public class UserController {
         return ResponseUtil.success(userResponse);
     }
 
-    // TODO 手机号冲突时应当拒绝创建
     @AdminOnly
     @PostMapping
     @Operation(
@@ -72,10 +71,9 @@ public class UserController {
         if (request.getPassword() == null) {
             request.setPassword("wangran123");
         }
-        UserResponse userResponse =
-            (UserResponse) authService.register(request.getPhoneNumber(), request.getPassword(), false);
+        User user = accountCreationService.createUser(request.getPhoneNumber(), request.getPassword());
         log.info("创建用户成功，手机号：{}", request.getPhoneNumber());
-        return ResponseUtil.success(userResponse);
+        return ResponseUtil.success(modelMapper.map(user, UserResponse.class));
     }
 
     @UserSelfOrAdmin

@@ -2,14 +2,13 @@ package io.github.crispyxyz.wangran.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import io.github.crispyxyz.wangran.component.UserExcelListener;
-import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.SystemException;
 import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.model.excel.UserExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.UserService;
-import io.github.crispyxyz.wangran.service.factory.impl.UserFactory;
+import io.github.crispyxyz.wangran.service.base.BaseEntityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fesod.sheet.FesodSheet;
@@ -32,7 +31,6 @@ import java.io.IOException;
 public class UserServiceImpl extends BaseEntityService<UserMapper, User> implements UserService {
 
     private final ModelMapper modelMapper;
-    private final UserFactory userFactory;
 
     @Transactional
     @Override
@@ -42,29 +40,6 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
                                      .setPassword(User::getPasswordSha256, request.getPassword())
                                      .execute();
         log.info("用户信息更新，用户ID：{}", id);
-        return user;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public boolean existPhoneNumber(String phoneNumber) {
-        return isFieldConflict(User::getPhoneNumber, phoneNumber, null);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public boolean existUsername(String username) {
-        return isFieldConflict(User::getUsername, username, null);
-    }
-
-    @Transactional
-    @Override
-    public User create(String phoneNumber, byte[] passwordSha256) {
-        if (existPhoneNumber(phoneNumber)) {
-            throw new ResourceConflictException("该手机号已被占用");
-        }
-        User user = userFactory.create(phoneNumber, passwordSha256);
-        save(user);
         return user;
     }
 

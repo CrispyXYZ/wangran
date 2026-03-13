@@ -1,4 +1,4 @@
-package io.github.crispyxyz.wangran.service.impl;
+package io.github.crispyxyz.wangran.service.base;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

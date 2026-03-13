@@ -3,7 +3,6 @@ package io.github.crispyxyz.wangran.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import io.github.crispyxyz.wangran.component.MerchantExcelListener;
 import io.github.crispyxyz.wangran.exception.BusinessException;
-import io.github.crispyxyz.wangran.exception.ResourceConflictException;
 import io.github.crispyxyz.wangran.exception.ResourceNotFoundException;
 import io.github.crispyxyz.wangran.exception.SystemException;
 import io.github.crispyxyz.wangran.mapper.MerchantMapper;
@@ -11,7 +10,7 @@ import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.excel.MerchantExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
 import io.github.crispyxyz.wangran.service.MerchantService;
-import io.github.crispyxyz.wangran.service.factory.impl.MerchantFactory;
+import io.github.crispyxyz.wangran.service.base.BaseEntityService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +34,6 @@ import java.io.IOException;
 public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merchant> implements MerchantService {
 
     private final ModelMapper modelMapper;
-    private final UserServiceImpl userService;
-    private final MerchantFactory merchantFactory;
 
     @Transactional
     @Override
@@ -50,18 +47,6 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
                              .execute();
         log.info("商户信息更新，商户ID：{}", id);
         return merchant;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existPhoneNumber(String phoneNumber) {
-        return isFieldConflict(Merchant::getPhoneNumber, phoneNumber, null);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existUsername(String username) {
-        return isFieldConflict(Merchant::getUsername, username, null);
     }
 
     @Transactional
@@ -90,18 +75,6 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
         updateById(merchant);
 
         return merchant;
-    }
-
-    @Transactional
-    @Override
-    public Merchant create(String phoneNumber, byte[] passwordSha256) {
-        return create(phoneNumber, passwordSha256, false);
-    }
-
-    @Transactional
-    @Override
-    public Merchant createByAdmin(String phoneNumber, byte[] passwordSha256) {
-        return create(phoneNumber, passwordSha256, true);
     }
 
     @Transactional(readOnly = true)
@@ -144,16 +117,6 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     @Override
     protected SFunction<Merchant, ?> getIdField() {
         return Merchant::getId;
-    }
-
-    private Merchant create(String phoneNumber, byte[] passwordSha256, boolean autoApprove) {
-        if (userService.existPhoneNumber(phoneNumber) || existPhoneNumber(phoneNumber)) {
-            throw new ResourceConflictException("该手机号已被注册");
-        }
-        Merchant merchant = merchantFactory.create(phoneNumber, passwordSha256, autoApprove);
-
-        save(merchant);
-        return merchant;
     }
 
 

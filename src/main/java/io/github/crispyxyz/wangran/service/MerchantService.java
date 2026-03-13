@@ -12,15 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface MerchantService extends EntityService<Merchant> {
     Merchant partialUpdate(int id, UpdateAccountRequest request);
 
-    boolean existPhoneNumber(String phoneNumber);
-
-    boolean existUsername(String username);
-
     Merchant reviewMerchant(String phoneNumber, boolean approved, String rejectReason);
-
-    Merchant create(String phoneNumber, byte[] passwordSha256);
-
-    Merchant createByAdmin(String phoneNumber, byte[] passwordSha256);
 
     Merchant findByPhoneNumber(String phoneNumber);
 

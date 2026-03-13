@@ -13,9 +13,9 @@ import io.github.crispyxyz.wangran.response.MerchantResponse;
 import io.github.crispyxyz.wangran.response.PageResponse;
 import io.github.crispyxyz.wangran.security.annotation.AdminOnly;
 import io.github.crispyxyz.wangran.security.annotation.MerchantSelfOrAdmin;
+import io.github.crispyxyz.wangran.service.AccountCreationService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.util.ResponseUtil;
-import io.github.crispyxyz.wangran.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,6 +37,7 @@ public class MerchantController {
     private final MerchantService merchantService;
     private final ModelMapperHelper modelMapperHelper;
     private final ModelMapper modelMapper;
+    private final AccountCreationService accountCreationService;
 
     @AdminOnly
     @GetMapping
@@ -63,7 +64,6 @@ public class MerchantController {
         return ResponseUtil.success(merchantResponse);
     }
 
-    // TODO 手机号冲突时应当拒绝创建
     @AdminOnly
     @PostMapping
     @Operation(
@@ -74,7 +74,7 @@ public class MerchantController {
             request.setPassword("wangran123");
         }
         Merchant merchant =
-            merchantService.createByAdmin(request.getPhoneNumber(), SecurityUtil.computeSha256(request.getPassword()));
+            accountCreationService.createMerchant(request.getPhoneNumber(), request.getPassword(), true);
         MerchantResponse merchantResponse = modelMapper.map(merchant, MerchantResponse.class);
         return ResponseUtil.success(merchantResponse);
     }

@@ -8,10 +8,10 @@ import io.github.crispyxyz.wangran.response.AccountResponse;
 import io.github.crispyxyz.wangran.response.LoginResponse;
 import io.github.crispyxyz.wangran.response.MerchantResponse;
 import io.github.crispyxyz.wangran.response.UserResponse;
+import io.github.crispyxyz.wangran.service.AccountCreationService;
 import io.github.crispyxyz.wangran.service.AuthService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.UserService;
-import io.github.crispyxyz.wangran.service.factory.impl.MerchantFactory;
 import io.github.crispyxyz.wangran.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserService userService;
     private final MerchantService merchantService;
-    private final MerchantFactory merchantFactory;
+    private final AccountCreationService accountCreationService;
 
     /**
      * 用户/商户注册，不允许同一手机号重复注册
@@ -46,20 +46,11 @@ public class AuthServiceImpl implements AuthService {
     public AccountResponse register(String phoneNumber, String password, boolean isMerchant) {
         log.debug("开始处理注册，phoneNumber={}", phoneNumber);
 
-        // 检查手机号是否已被注册
-        if (userService.existPhoneNumber(phoneNumber) || merchantService.existPhoneNumber(phoneNumber)) {
-            throw new ResourceConflictException("该手机号已被注册");
-        }
-
-        // 对输入的密码进行 SHA-256 编码
-        byte[] passwordSha256 = SecurityUtil.computeSha256(password);
-
         if (isMerchant) {
-            Merchant merchant = merchantFactory.create(phoneNumber, passwordSha256, false);
-            merchantService.save(merchant);
+            Merchant merchant = accountCreationService.createMerchant(phoneNumber, password, false);
             return modelMapper.map(merchant, MerchantResponse.class);
         } else {
-            User user = userService.create(phoneNumber, passwordSha256);
+            User user = accountCreationService.createUser(phoneNumber, password);
             return modelMapper.map(user, UserResponse.class);
         }
     }

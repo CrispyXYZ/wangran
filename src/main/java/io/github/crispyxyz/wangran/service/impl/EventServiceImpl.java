@@ -22,6 +22,7 @@ import io.github.crispyxyz.wangran.service.EventService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.OrganizerEventService;
 import io.github.crispyxyz.wangran.service.OrganizerService;
+import io.github.crispyxyz.wangran.service.base.BaseEntityService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
