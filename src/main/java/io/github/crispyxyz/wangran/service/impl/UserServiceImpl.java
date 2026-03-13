@@ -7,12 +7,12 @@ import io.github.crispyxyz.wangran.mapper.UserMapper;
 import io.github.crispyxyz.wangran.model.User;
 import io.github.crispyxyz.wangran.model.excel.UserExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
+import io.github.crispyxyz.wangran.service.AccountCreationService;
 import io.github.crispyxyz.wangran.service.UserService;
 import io.github.crispyxyz.wangran.service.base.BaseEntityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fesod.sheet.FesodSheet;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ import java.io.IOException;
 @Slf4j
 public class UserServiceImpl extends BaseEntityService<UserMapper, User> implements UserService {
 
-    private final ModelMapper modelMapper;
+    private final AccountCreationService accountCreationService;
 
     @Transactional
     @Override
@@ -54,7 +54,7 @@ public class UserServiceImpl extends BaseEntityService<UserMapper, User> impleme
     @Override
     public void importUsers(MultipartFile file) {
         try {
-            UserExcelListener listener = new UserExcelListener(modelMapper, this);
+            UserExcelListener listener = new UserExcelListener(accountCreationService);
             FesodSheet.read(file.getInputStream(), UserExcelData.class, listener)
                       .sheet()
                       .doRead();

@@ -1,64 +1,10 @@
 package io.github.crispyxyz.wangran.component;
 
-import io.github.crispyxyz.wangran.exception.BusinessException;
-import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.excel.MerchantExcelData;
-import io.github.crispyxyz.wangran.service.MerchantService;
-import io.github.crispyxyz.wangran.util.SecurityUtil;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-import lombok.RequiredArgsConstructor;
-import org.apache.fesod.sheet.context.AnalysisContext;
-import org.apache.fesod.sheet.read.listener.ReadListener;
-import org.modelmapper.ModelMapper;
+import io.github.crispyxyz.wangran.service.AccountCreationService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-@RequiredArgsConstructor
-public class MerchantExcelListener implements ReadListener<MerchantExcelData> {
-
-    private static final int CACHE_LIMIT = 50;
-    private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
-    private static final Validator VALIDATOR = VALIDATOR_FACTORY.getValidator();
-    private final ModelMapper modelMapper;
-    private final MerchantService merchantService;
-    private final List<Merchant> cache = new ArrayList<>(CACHE_LIMIT);
-
-    // TODO 手机号冲突时应当拒绝导入
-    @Override
-    public void invoke(MerchantExcelData data, AnalysisContext context) {
-        Set<ConstraintViolation<MerchantExcelData>> violations = VALIDATOR.validate(data);
-        if (!violations.isEmpty()) {
-            String msg = violations.stream()
-                                   .map(ConstraintViolation::getMessage)
-                                   .collect(Collectors.joining("; "));
-            throw new BusinessException("Excel 数据校验失败：" + msg);
-        }
-        Merchant merchant = modelMapper.map(data, Merchant.class);
-        merchant.setPasswordSha256(SecurityUtil.computeSha256(data.getPassword()));
-        merchant.setApprovalStatus(Merchant.STATUS_APPROVED);
-        merchant.setRejectReason("");
-        cache.add(merchant);
-
-        if (cache.size() >= CACHE_LIMIT) {
-            saveData();
-        }
-    }
-
-    @Override
-    public void doAfterAllAnalysed(AnalysisContext context) {
-        saveData();
-    }
-
-    public void saveData() {
-        if (!cache.isEmpty()) {
-            merchantService.saveBatch(cache);
-            cache.clear();
-        }
+public class MerchantExcelListener extends AbstractExcelListener<MerchantExcelData> {
+    public MerchantExcelListener(AccountCreationService creationService) {
+        super(creationService::importMerchantsFromExcel);
     }
 }

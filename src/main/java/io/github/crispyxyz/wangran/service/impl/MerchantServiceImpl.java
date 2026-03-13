@@ -9,13 +9,13 @@ import io.github.crispyxyz.wangran.mapper.MerchantMapper;
 import io.github.crispyxyz.wangran.model.Merchant;
 import io.github.crispyxyz.wangran.model.excel.MerchantExcelData;
 import io.github.crispyxyz.wangran.request.UpdateAccountRequest;
+import io.github.crispyxyz.wangran.service.AccountCreationService;
 import io.github.crispyxyz.wangran.service.MerchantService;
 import io.github.crispyxyz.wangran.service.base.BaseEntityService;
 import io.github.crispyxyz.wangran.util.GenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fesod.sheet.FesodSheet;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +33,7 @@ import java.io.IOException;
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merchant> implements MerchantService {
 
-    private final ModelMapper modelMapper;
+    private final AccountCreationService accountCreationService;
 
     @Transactional
     @Override
@@ -95,7 +95,7 @@ public class MerchantServiceImpl extends BaseEntityService<MerchantMapper, Merch
     @Override
     public void importMerchants(MultipartFile file) {
         try {
-            MerchantExcelListener listener = new MerchantExcelListener(modelMapper, this);
+            MerchantExcelListener listener = new MerchantExcelListener(accountCreationService);
             FesodSheet.read(file.getInputStream(), MerchantExcelData.class, listener)
                       .sheet()
                       .doRead();
