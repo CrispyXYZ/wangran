@@ -34,6 +34,6 @@ public class EventResponse {
     private Instant saleEndTime;
     @Schema(description = "商户id", example = "1")
     private int merchantId;
-    @Schema(description = "主办方id列表", example = "[1]")
+    @Schema(description = "主办方列表")
     private List<OrganizerResponse> organizers;
 }
